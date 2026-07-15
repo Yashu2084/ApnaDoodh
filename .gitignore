@@ -25,4 +25,18 @@ dist-ssr
 
 # Security Environment Variables
 .env
+.env.local
 .env*.local
+
+# Next.js
+.next/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel/
+
+# Backup folders
+src-backup/
