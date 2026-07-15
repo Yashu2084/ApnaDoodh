@@ -1,0 +1,157 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String         @id @default(uuid())
+  name              String
+  email             String         @unique
+  passwordHash      String
+  role              Role           @default(CUSTOMER)
+  createdAt         DateTime       @default(now())
+  walletBalance     Float?         @default(1500.0)
+  kycStatus         KycStatus?
+  kycGovIdUrl       String?
+  kycFssaiUrl       String?
+  kycDocumentExpiry DateTime?
+  location          String?
+  joinedDate        String?
+  herdSize          String?
+  storeName         String?
+  storeDesc         String?
+  storePhone        String?
+  storeAddress      String?
+  deliveryRadius    String?
+  dispatchTime      String?
+  deliveryFee       Float?         @default(0.0)
+  status            UserStatus     @default(Active)
+  wishlist          String[]       @default([])
+  products          Product[]
+  deliveries        DeliveryItem[] @relation("CustomerDeliveries")
+  farmerDeliveries  DeliveryItem[] @relation("FarmerDeliveries")
+  transactions      Transaction[]
+  refreshTokens     RefreshToken[]
+}
+
+model Product {
+  id            String         @id @default(uuid())
+  name          String
+  price         Float
+  unit          String
+  description   String
+  image         String
+  stock         Int
+  category      String
+  farmerId      String
+  farmer        User           @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  status        ProductStatus  @default(Active)
+  badge         String?
+  rating        Float?         @default(5.0)
+}
+
+model DeliveryItem {
+  id           String         @id
+  customerId   String
+  customer     User           @relation("CustomerDeliveries", fields: [customerId], references: [id], onDelete: Cascade)
+  customerName String
+  address      String
+  date         String
+  product      String
+  quantity     String
+  price        Float
+  status       DeliveryStatus @default(Scheduled)
+  farmerId     String
+  farmer       User           @relation("FarmerDeliveries", fields: [farmerId], references: [id], onDelete: Cascade)
+  skippedDates String[]       @default([])
+}
+
+model Review {
+  id           String       @id
+  customerId   String
+  customerName String
+  farmerId     String
+  farmerName   String
+  rating       Int
+  text         String
+  date         String
+  product      String
+  status       ReviewStatus @default(Approved)
+}
+
+model Transaction {
+  id          String          @id
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Float
+  type        TransactionType
+  description String
+  createdAt   DateTime        @default(now())
+}
+
+model PlatformSettings {
+  id             Int     @id @default(1)
+  commissionRate Float   @default(10.0)
+  baseDeliveryFee Float   @default(15.0)
+  payoutCycle    String  @default("Weekly")
+  kycRequired    Boolean @default(true)
+}
+
+model TrackingLocation {
+  id          Int      @id @default(1)
+  lat         Float    @default(28.4595)
+  lng         Float    @default(77.0266)
+  lastUpdated DateTime @default(now())
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+enum Role {
+  CUSTOMER
+  FARMER
+  SUPER_ADMIN
+}
+
+enum KycStatus {
+  Pending
+  Verified
+  Suspended
+}
+
+enum UserStatus {
+  Active
+  Blocked
+}
+
+enum ProductStatus {
+  Active
+  Flagged
+}
+
+enum DeliveryStatus {
+  Delivered
+  Scheduled
+  Paused
+  Skipped
+}
+
+enum ReviewStatus {
+  Approved
+  Flagged
+  Removed
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}

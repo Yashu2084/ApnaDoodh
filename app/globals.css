@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  /* Customize the Tailwind blue color palette around the brand primary (#356be9) */
+  --color-blue-50: #f0f4ff;
+  --color-blue-100: #e0e9ff;
+  --color-blue-200: #c7d8fe;
+  --color-blue-300: #a1bcfa;
+  --color-blue-400: #7298f6;
+  --color-blue-500: #4d77f1;
+  --color-blue-600: #356be9; /* Your primary brand blue */
+  --color-blue-700: #2a52ce;
+  --color-blue-800: #2544a7;
+  --color-blue-900: #223c85;
+  --color-blue-950: #192551;
+}
+
+:root {
+  color-scheme: light;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #356be9;
+  background-color: #ffffff;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #ffffff;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* Custom utility for subtle glass effect on cards */
+.bg-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+}
