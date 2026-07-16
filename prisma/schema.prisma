@@ -68,6 +68,7 @@ model DeliveryItem {
   farmerId     String
   farmer       User           @relation("FarmerDeliveries", fields: [farmerId], references: [id], onDelete: Cascade)
   skippedDates String[]       @default([])
+  temperatureLogs Float[]     @default([])
 }
 
 model Review {
@@ -154,4 +155,13 @@ enum ReviewStatus {
 enum TransactionType {
   CREDIT
   DEBIT
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  action    String
+  adminId   String
+  adminName String
+  details   String
 }
