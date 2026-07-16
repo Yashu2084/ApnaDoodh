@@ -17,21 +17,26 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Setup CORS with credentials support
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow local development ports and matching FRONTEND_URL
-    if (!origin || origin === frontendUrl || origin.startsWith("http://localhost:")) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow all standard browser configurations during staging
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
-}));
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.apnadoodh.shop",
+  "https://apnadoodh.shop"
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
+  })
+);
 
 // Middlewares
 app.use(express.json({ limit: "50mb" }));
