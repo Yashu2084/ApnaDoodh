@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 // Helper to read client-side cookie if needed
 export function getCookie(name: string): string | null {
@@ -40,7 +40,6 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   }
 
   // Read access token client-side if available to inject Bearer Header
-  // This acts as a fallback if cookies are not automatically sent due to cross-domain setups
   const clientToken = getCookie("apnadoodh_token");
   if (clientToken && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${clientToken}`);

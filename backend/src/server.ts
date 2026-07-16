@@ -12,7 +12,7 @@ import trackingRouter from "./routes/tracking";
 
 // Load environment variables
 import dotenv from "dotenv";
-dotenv.config({ path: path.join(__dirname, "../../.env") });
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
 const port = process.env.PORT || 5000;

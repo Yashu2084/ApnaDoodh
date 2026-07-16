@@ -23,7 +23,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="relative w-screen left-1/2 -translate-x-1/2 overflow-hidden px-4 sm:px-6 lg:px-8 py-16 sm:py-24 flex items-center justify-center min-h-[calc(100vh-80px)]">
+    <div className="relative w-screen left-1/2 -translate-x-1/2 overflow-hidden px-4 sm:px-6 lg:px-8 pt-28 pb-16 sm:pt-36 sm:pb-24 flex items-center justify-center min-h-[calc(100vh-80px)]">
       {/* Animated Scenic Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -39,7 +39,7 @@ export default function ContactPage() {
           }}
           className="absolute -inset-4"
           style={{
-            backgroundImage: "url('/bg-pasture-1.png')",
+            backgroundImage: "url('/bg-pasture-1.webp')",
             backgroundSize: "cover",
             backgroundPosition: "center 45%",
             backgroundRepeat: "no-repeat",

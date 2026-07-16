@@ -29,7 +29,7 @@ export default function DownloadApp() {
           }}
           className="absolute -inset-4"
           style={{
-            backgroundImage: "url('/bg-pasture-1.png')",
+            backgroundImage: "url('/bg-pasture-1.webp')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
