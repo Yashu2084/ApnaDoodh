@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { ArrowRight, User, Tractor } from "lucide-react";
 import Brand from "@/components/Brand";
 
+import { apiFetch, setCookie } from "@/lib/api-client";
+
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -22,7 +24,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await apiFetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, role }),
@@ -32,6 +34,14 @@ export default function SignupPage() {
 
       if (!res.ok) {
         throw new Error(data.error || "Signup failed");
+      }
+
+      // Save tokens to cookies client-side for Next.js middleware visibility
+      if (data.accessToken) {
+        setCookie("apnadoodh_token", data.accessToken, 900); // 15 mins
+      }
+      if (data.refreshToken) {
+        setCookie("apnadoodh_refresh", data.refreshToken, 2592000); // 30 days
       }
 
       router.refresh();

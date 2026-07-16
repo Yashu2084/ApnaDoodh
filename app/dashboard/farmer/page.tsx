@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import { apiFetch } from "@/lib/api-client";
 
 interface Product {
   id: string;
@@ -91,14 +92,14 @@ export default function FarmerDashboard() {
   const loadDashboardData = async (farmerId: string) => {
     try {
       // Fetch Products
-      const prodRes = await fetch(`/api/products?farmerId=${farmerId}`);
+      const prodRes = await apiFetch(`/api/products?farmerId=${farmerId}`);
       if (prodRes.ok) {
         const prodData = await prodRes.json();
         setProducts(prodData.products);
       }
 
       // Fetch Deliveries/Orders
-      const delivRes = await fetch("/api/deliveries");
+      const delivRes = await apiFetch("/api/deliveries");
       if (delivRes.ok) {
         const delivData = await delivRes.json();
         const mappedOrders = delivData.deliveries.map((d: any) => ({
@@ -115,7 +116,7 @@ export default function FarmerDashboard() {
       }
 
       // Fetch Reviews
-      const revRes = await fetch(`/api/reviews?farmerId=${farmerId}`);
+      const revRes = await apiFetch(`/api/reviews?farmerId=${farmerId}`);
       if (revRes.ok) {
         const revData = await revRes.json();
         setReviews(revData.reviews.map((r: any) => ({
@@ -136,7 +137,7 @@ export default function FarmerDashboard() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await apiFetch("/api/auth/me");
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
@@ -160,10 +161,10 @@ export default function FarmerDashboard() {
   // Handlers for Orders
   const handleUpdateOrderStatus = async (orderId: string, nextStatus: "Completed" | "Cancelled") => {
     try {
-      const res = await fetch(`/api/deliveries/${orderId}`, {
+      const res = await apiFetch(`/api/deliveries/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({ status: nextStatus === "Completed" ? "Delivered" : "Skipped" }),
       });
       if (res.ok) {
         setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
@@ -208,7 +209,7 @@ export default function FarmerDashboard() {
 
     try {
       if (modalMode === "add") {
-        const res = await fetch("/api/products", {
+        const res = await apiFetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -218,7 +219,8 @@ export default function FarmerDashboard() {
             description: prodFormDesc,
             image: prodFormImg,
             stock: stockVal,
-            category: prodFormCategory
+            category: prodFormCategory,
+            farmerId: user?.id
           })
         });
         if (res.ok) {
@@ -226,7 +228,7 @@ export default function FarmerDashboard() {
           setProducts([...products, data.product]);
         }
       } else {
-        const res = await fetch(`/api/products/${editingProductId}`, {
+        const res = await apiFetch(`/api/products/${editingProductId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -253,7 +255,7 @@ export default function FarmerDashboard() {
   const handleDeleteProduct = async (id: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       try {
-        const res = await fetch(`/api/products/${id}`, {
+        const res = await apiFetch(`/api/products/${id}`, {
           method: "DELETE"
         });
         if (res.ok) {
@@ -268,7 +270,7 @@ export default function FarmerDashboard() {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/auth/me", {
+      const res = await apiFetch("/api/auth/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Logo from "@/components/Logo";
 
+import { apiFetch } from "@/lib/api-client";
+
 export default function DashboardRedirectPage() {
   const router = useRouter();
 
   useEffect(() => {
     async function checkRoleAndRedirect() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await apiFetch("/api/auth/me");
         const data = await res.json();
 
         if (data.user) {

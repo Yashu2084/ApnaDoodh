@@ -9,6 +9,7 @@ import {
   ChevronLeft, ChevronRight, Clock
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import { apiFetch } from "@/lib/api-client";
 
 interface FarmerInfo {
   id: string;
@@ -57,7 +58,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await apiFetch("/api/auth/me");
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
@@ -100,7 +101,7 @@ export default function AdminDashboard() {
   const loadAdminData = async () => {
     try {
       // Platform settings
-      const settingsRes = await fetch("/api/admin/settings");
+      const settingsRes = await apiFetch("/api/admin/settings");
       if (settingsRes.ok) {
         const sData = await settingsRes.json();
         setCommissionRate(sData.settings.commissionRate);
@@ -110,7 +111,7 @@ export default function AdminDashboard() {
       }
 
       // 1. Fetch Farmers directly via designed endpoint (Part 5.4.1)
-      const farmersRes = await fetch("/api/admin/farmers");
+      const farmersRes = await apiFetch("/api/admin/farmers");
       if (farmersRes.ok) {
         const fData = await farmersRes.json();
         setFarmers(fData.farmers.map((f: any) => ({
@@ -127,7 +128,7 @@ export default function AdminDashboard() {
       }
 
       // 2. Fetch Customers, Products, Reviews from actions endpoint
-      const actionsRes = await fetch("/api/admin/actions");
+      const actionsRes = await apiFetch("/api/admin/actions");
       if (actionsRes.ok) {
         const aData = await actionsRes.json();
 
@@ -171,7 +172,7 @@ export default function AdminDashboard() {
   // Handlers for Farmers Approval / Suspension (Part 5.4.2)
   const handleApproveKYC = async (id: string) => {
     try {
-      const res = await fetch(`/api/admin/farmers/${id}/kyc`, {
+      const res = await apiFetch(`/api/admin/farmers/${id}/kyc`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kycStatus: "Verified" }),
@@ -187,7 +188,7 @@ export default function AdminDashboard() {
   const handleToggleSuspendFarmer = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === "Suspended" ? "Verified" : "Suspended";
     try {
-      const res = await fetch(`/api/admin/farmers/${id}/kyc`, {
+      const res = await apiFetch(`/api/admin/farmers/${id}/kyc`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kycStatus: nextStatus }),
@@ -204,7 +205,7 @@ export default function AdminDashboard() {
   const handleToggleBlockCustomer = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === "Blocked" ? "Active" : "Blocked";
     try {
-      const res = await fetch("/api/admin/actions", {
+      const res = await apiFetch("/api/admin/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "CUSTOMER_STATUS", targetId: id, status: nextStatus }),
@@ -221,7 +222,7 @@ export default function AdminDashboard() {
   const handleToggleProductFlag = async (id: string, currentStatus: string) => {
     const nextStatus = currentStatus === "Flagged" ? "Active" : "Flagged";
     try {
-      const res = await fetch(`/api/admin/products/${id}/flag`, {
+      const res = await apiFetch(`/api/admin/products/${id}/flag`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
@@ -237,7 +238,7 @@ export default function AdminDashboard() {
   // Handlers for Review Moderation (Part 5.4.4)
   const handleReviewAction = async (id: string, action: "Approved" | "Removed") => {
     try {
-      const res = await fetch(`/api/admin/reviews/${id}`, {
+      const res = await apiFetch(`/api/admin/reviews/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: action }),
@@ -254,7 +255,7 @@ export default function AdminDashboard() {
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/admin/settings", {
+      const res = await apiFetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

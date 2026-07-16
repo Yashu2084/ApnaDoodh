@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 import Logo from "@/components/Logo";
+import { apiFetch } from "@/lib/api-client";
 
 interface DeliveryItem {
   id: string;
@@ -66,14 +67,14 @@ export default function CustomerDashboard() {
   const loadDashboardData = async () => {
     try {
       // Wallet
-      const walletRes = await fetch("/api/wallet");
+      const walletRes = await apiFetch("/api/wallet");
       if (walletRes.ok) {
         const walletData = await walletRes.json();
         setWalletBalance(walletData.balance);
       }
 
       // Deliveries
-      const deliveriesRes = await fetch("/api/deliveries");
+      const deliveriesRes = await apiFetch("/api/deliveries");
       if (deliveriesRes.ok) {
         const delivData = await deliveriesRes.json();
         setDeliveries(delivData.deliveries);
@@ -83,7 +84,7 @@ export default function CustomerDashboard() {
       }
 
       // Reviews
-      const reviewsRes = await fetch("/api/reviews");
+      const reviewsRes = await apiFetch("/api/reviews");
       if (reviewsRes.ok) {
         const revData = await reviewsRes.json();
         setReviewsList(
@@ -105,7 +106,7 @@ export default function CustomerDashboard() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await apiFetch("/api/auth/me");
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
@@ -121,7 +122,7 @@ export default function CustomerDashboard() {
   const toggleSubscription = async () => {
     try {
       const targetState = !isPaused;
-      const res = await fetch("/api/deliveries", {
+      const res = await apiFetch("/api/deliveries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPaused: targetState }),
@@ -129,7 +130,7 @@ export default function CustomerDashboard() {
       if (res.ok) {
         setIsPaused(targetState);
         // Refresh deliveries
-        const deliveriesRes = await fetch("/api/deliveries");
+        const deliveriesRes = await apiFetch("/api/deliveries");
         if (deliveriesRes.ok) {
           const delivData = await deliveriesRes.json();
           setDeliveries(delivData.deliveries);
@@ -142,7 +143,7 @@ export default function CustomerDashboard() {
 
   const handleSkipDelivery = async (id: string) => {
     try {
-      const res = await fetch(`/api/deliveries/${id}`, {
+      const res = await apiFetch(`/api/deliveries/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "Skipped" }),
@@ -163,7 +164,7 @@ export default function CustomerDashboard() {
     if (!isNaN(amt) && amt > 0) {
       setIsTopUpSuccess(true);
       try {
-        const res = await fetch("/api/wallet", {
+        const res = await apiFetch("/api/wallet", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ amount: amt }),
@@ -191,7 +192,7 @@ export default function CustomerDashboard() {
     if (reviewText.trim()) {
       setIsTopUpSuccess(true); // temporary spinner flag logic or similar
       try {
-        const res = await fetch("/api/reviews", {
+        const res = await apiFetch("/api/reviews", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

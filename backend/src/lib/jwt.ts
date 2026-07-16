@@ -1,7 +1,10 @@
+import crypto from "crypto";
+
 const SECRET = process.env.JWT_SECRET || "apnadoodh_super_secret_key_123456";
 
 function base64UrlEncode(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)))
+  return Buffer.from(str)
+    .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
@@ -12,7 +15,7 @@ function base64UrlDecode(str: string): string {
   while (base64.length % 4) {
     base64 += "=";
   }
-  return decodeURIComponent(escape(atob(base64)));
+  return Buffer.from(base64, "base64").toString("utf-8");
 }
 
 export async function signJWT(payload: any, expiresInSeconds?: number): Promise<string> {
@@ -24,21 +27,12 @@ export async function signJWT(payload: any, expiresInSeconds?: number): Promise<
   const encodedPayload = base64UrlEncode(JSON.stringify(fullPayload));
   const tokenInput = `${encodedHeader}.${encodedPayload}`;
 
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(SECRET);
-  const key = await crypto.subtle.importKey(
-    "raw",
-    keyData,
-    { name: "HMAC", hash: { name: "SHA-256" } },
-    false,
-    ["sign"]
-  );
-
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(tokenInput));
+  const hmac = crypto.createHmac("sha256", SECRET);
+  hmac.update(tokenInput);
+  const signature = hmac.digest();
   
-  const sigArray = Array.from(new Uint8Array(signature));
-  const sigString = sigArray.map(b => String.fromCharCode(b)).join("");
-  const encodedSignature = btoa(sigString)
+  const encodedSignature = signature
+    .toString("base64")
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
@@ -53,25 +47,15 @@ export async function verifyJWT(token: string): Promise<any | null> {
     const [header, payload, signature] = parts;
     const tokenInput = `${header}.${payload}`;
 
-    const encoder = new TextEncoder();
-    const keyData = encoder.encode(SECRET);
-    const key = await crypto.subtle.importKey(
-      "raw",
-      keyData,
-      { name: "HMAC", hash: { name: "SHA-256" } },
-      false,
-      ["verify"]
-    );
+    const hmac = crypto.createHmac("sha256", SECRET);
+    hmac.update(tokenInput);
+    const expectedSignature = hmac.digest()
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
 
-    const base64Sig = signature.replace(/-/g, "+").replace(/_/g, "/");
-    const sigString = atob(base64Sig);
-    const sigData = new Uint8Array(sigString.length);
-    for (let i = 0; i < sigString.length; i++) {
-      sigData[i] = sigString.charCodeAt(i);
-    }
-
-    const isValid = await crypto.subtle.verify("HMAC", key, sigData, encoder.encode(tokenInput));
-    if (!isValid) return null;
+    if (signature !== expectedSignature) return null;
 
     const decodedPayload = JSON.parse(base64UrlDecode(payload));
     

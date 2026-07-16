@@ -1,99 +1,137 @@
 # System Architecture Overview — ApnaDoodh Marketplace
 
-This document outlines the technical design, system layout, data flows, and security mechanics of the ApnaDoodh marketplace.
+This document outlines the decoupled single-backend technical architecture, system layout, data flows, and security mechanics of the ApnaDoodh marketplace.
 
 ---
 
-## 1. Technology Stack
+## 1. System Topology
 
-* **Frontend Framework**: Next.js 15 (App Router, Server & Client Components)
-* **Styling**: Tailwind CSS v4 (native `@theme` configurations, mobile-first grid, CSS shimmers)
-* **Database & ORM**: Prisma ORM with PostgreSQL database schema support
-* **Local Fallback Database**: In-memory write-locked JSON database (`auth_db.json`)
-* **Caching & Queue**: Redis (ioredis) with in-memory TTL map fallback for local development
+ApnaDoodh uses a modern decoupled architecture consisting of a static/UI frontend and a central API backend.
+
+```text
+       Frontend (Next.js 15)
+     [ Deployed on Vercel UI ]
+                 │
+                 │ HTTPS API Calls (apiFetch)
+                 ▼
+     Backend (Node.js + Express)
+  [ Deployed on Prisma Compute ]
+                 │
+                 │ Prisma ORM Client
+                 ▼
+  PostgreSQL Cloud Database
+```
+
+* **Frontend**: Next.js 15 UI pages and middleware only. It contains no database dependencies and runs entirely as static/client-side application, calling the Express backend for all operations.
+* **Backend**: Express.js server exposing REST endpoints. It holds all business logic, ORM database connections, third-party integrations, and background task queues.
+* **Database**: Managed Cloud PostgreSQL synced using Prisma ORM.
+
+---
+
+## 2. Technology Stack
+
+* **Frontend Framework**: Next.js 15 (App Router, Client Components, Edge Middleware)
+* **Backend Framework**: Node.js + Express.js (TypeScript compiled)
+* **Database & ORM**: Prisma ORM with PostgreSQL database cloud schema
+* **JWT Cryptography**: Edge-native Web Crypto APIs (Frontend) & native Node Crypto Hmac (Backend)
+* **Background Queue**: In-memory task worker queue (running in Express backend)
 * **Payments**: Stripe & Razorpay SDK integrations
-* **SMS Gateway**: Twilio SMS (orMsg91)
-* **Email Gateway**: SendGrid Mail (or Resend)
+* **SMS Gateway**: Twilio SMS (or Msg91 API)
+* **Email Gateway**: SendGrid Mail (or Resend API)
 * **Maps / Geocoding**: Google Maps API
 
 ---
 
-## 2. Directory Structure & Layers
+## 3. Directory Layouts
 
+### 3.1. Frontend Directory (`/`)
 ```text
-├── app/                        # Next.js App Router Pages & API Route Handlers
-│   ├── api/                    # Backend API endpoints (Auth, Customer, Admin, etc.)
+├── app/                        # Next.js App Router (UI Pages & Layouts only)
 │   ├── dashboard/              # Branded Admin, Customer, and Farmer Dashboards
-│   ├── products/               # Marketplace catalogue and dynamic product specs
+│   ├── products/               # Marketplace catalogue UI pages
+│   ├── login/                  # Customer/Farmer login page
+│   ├── signup/                 # Registration page
 │   ├── loading.tsx             # Root skeleton shimmer page loader
 │   ├── not-found.tsx           # Custom 404 handler
 │   └── error.tsx               # Root React exception boundaries
 ├── components/                 # Reusable UI modules & Section Layouts
-│   ├── about/                  # Inside story timelines and member components
-│   ├── Navbar.tsx              # Navigation menu with auth states
-│   └── CartProvider.tsx        # React Context tracking local storage shopping carts
-├── lib/                        # Core Application Engine & Helpers
-│   ├── db.ts                   # Core database queries and write locks queue
-│   ├── jwt.ts                  # Web Crypto JWT token encoders/decoders
-│   ├── queue.ts                # In-memory background task workers registry
-│   ├── redis.ts                # Cache abstraction with memory TTL map fallback
-│   ├── security.ts             # Input sanitizers, CORS headers, rate limit maps
-│   ├── services.ts             # Third-party integrations (Stripe, Twilio, S3 geocoding)
-│   └── repositories/           # Repository Pattern separation layers
-├── public/                     # Compressed WebP assets and local uploads folder
-└── prisma/                     # Prisma schema definitions
+├── lib/                        # Client Utilities
+│   ├── api-client.ts           # Centralized apiFetch wrapper pointing to NEXT_PUBLIC_API_URL
+│   └── jwt.ts                  # Edge-native JWT validator for Middleware
+├── public/                     # Compressed WebP assets
+├── middleware.ts               # Next.js Edge Middleware for routing controls
+├── package.json                # Frontend package configuration (database-free)
+└── tsconfig.json               # Frontend TypeScript configuration
+```
+
+### 3.2. Backend Directory (`/backend/`)
+```text
+├── src/
+│   ├── server.ts               # Express bootstrap entry point (CORS, Middlewares, Static server)
+│   ├── routes/                 # Express API Controller routers
+│   │   ├── auth.ts             # Sign-up, login, refresh tokens, profiles
+│   │   ├── products.ts         # Products retrieval, catalog uploads
+│   │   ├── deliveries.ts       # Schedules, skips, temperature logging
+│   │   ├── wallet.ts           # Top-ups, ledgers, invoice listings
+│   │   ├── reviews.ts          # Moderation logs, review inserts
+│   │   ├── admin.ts            # Payout runs, KYC status, audit listings
+│   │   └── tracking.ts         # Telemetry location updates
+│   └── lib/                    # Shared Libraries
+│       ├── db.ts               # Prisma ORM instantiation and DB seeding
+│       ├── jwt.ts              # Node Crypto JWT signer/verifier
+│       ├── queue.ts            # Background roster generation task queue
+│       ├── security.ts         # Request rate-limiters and input sanitizers
+│       └── services.ts         # Integrations (Stripe, Razorpay, S3, Twilio)
+│       └── repositories/       # Clean Repository Pattern layers
+├── prisma/                     # Prisma schema definition
+├── package.json                # Backend dependency and run scripts
+└── tsconfig.json               # Backend TypeScript compiler configuration
 ```
 
 ---
 
-## 3. Core Architectural Flows
+## 4. Core Architectural Flows
 
-### 3.1. Authentication & Middleware Verification
+### 4.1. Decoupled Token Authentication Flow
 ```mermaid
 sequenceDiagram
-    participant User as Client Browser
-    participant MW as Next.js Middleware
-    participant API as Auth API Endpoint
-    participant DB as JSON DB / Postgres
+    participant Browser as Client Browser
+    participant Vercel as Next.js Edge (Vercel)
+    participant Express as Express API (Prisma Compute)
+    participant DB as Cloud PostgreSQL
 
-    User->>MW: Request /dashboard/customer
-    alt Access Token Cookie exists & is valid
-        MW->>User: Allow request (Serve Dashboard)
-    else Access Token Cookie is invalid or missing
-        MW->>API: Silent Refresh Call (POST /api/auth/refresh)
-        API->>DB: Check Refresh Token in DB
-        alt Refresh Token is valid
-            API->>MW: Issue new Access Token
-            MW->>User: Set new Cookie & Serve Dashboard
-        else Refresh Token is expired or missing
-            API->>MW: Failed Refresh
-            MW->>User: Clear cookies & Redirect to /login
+    Browser->>Vercel: Request /dashboard/customer
+    Vercel->>Vercel: Local decrypt token in Edge Middleware
+    alt Token is valid
+        Vercel->>Browser: Allow navigation (Serve UI)
+    else Token is expired/missing
+        Vercel->>Express: POST /api/auth/refresh (send refresh token)
+        Express->>DB: Verify token in Database
+        alt Valid
+            Express-->>Vercel: Issue new access token
+            Vercel-->>Browser: Save token cookie & Serve UI
+        else Expired/Invalid
+            Express-->>Vercel: 401 Unauthorized
+            Vercel-->>Browser: Clear cookies & Redirect to /login
         end
     end
 ```
 
-### 3.2. Wallet Debit & Refund Escrow
-* **Top-Up**: Payments are completed via Stripe/Razorpay (`lib/services.ts`). Upon success, a transaction document is pushed, and the user's `walletBalance` is incremented.
-* **Subscription Billing**: Daily drops are scheduled and debited against the customer's wallet balance.
-* **Skip & Auto-Refund Escrow**: If a drop status is skipped (via `/api/customer/deliveries/[id]/skip`):
-  1. The delivery item's status transitions to `Skipped`.
-  2. The system executes `updateDeliveryStatus` (`lib/db.ts`) which triggers the escrow module.
-  3. The cost of the skipped drop is credited back to the customer's `walletBalance`.
-  4. A `CREDIT` ledger transaction log is recorded.
-
-### 3.3. Write Queue (Concurrency Safety)
-To prevent race conditions during concurrent JSON database writes, all modifications run inside a promise chain (`runInQueue` in `lib/db.ts`):
-```typescript
-let writeQueue = Promise.resolve();
-async function runInQueue<T>(fn: () => Promise<T>): Promise<T> { ... }
-```
-This forces sequential write lock execution, ensuring data consistency.
+### 4.2. Escrow Wallet Billing & Auto-Refund Flow
+* **Subscription Top-Up**: User triggers a wallet credit. Express processes payment via Stripe/Razorpay (`lib/services.ts`), writes the transaction ledger to Postgres, and increments `walletBalance`.
+* **Escrow Debits**: Daily drops are scheduled and debited against the customer's wallet balance.
+* **Skip & Auto-Refund Escrow**: If a drop status is updated to `Skipped` (via PATCH `/api/deliveries/:id`):
+  1. The Express server initiates a database transaction (`prisma.$transaction` in `lib/db.ts`).
+  2. The delivery item status is flagged as `Skipped`.
+  3. The price of the delivery item is added back to the customer's `walletBalance`.
+  4. A `CREDIT` transaction record is logged as "Auto-Refund: Skipped drop".
+  5. The transaction commits atomically, avoiding race conditions.
 
 ---
 
-## 4. Security Architecture
+## 5. Security Systems
 
 * **Rate Limiting**: sliding-window IP requests tracked in memory or Redis cache block logins after 5 attempts/minute.
-* **Sanitization**: Recursively strips HTML `<script>` tags (XSS protection) and escapes quotes (SQLi protection) on incoming JSON request payloads.
+* **Request Sanitization**: The backend recursively strips HTML `<script>` tags (XSS protection) and escapes quotes (SQLi protection) on incoming JSON payloads.
 * **CORS Policies**: Strict Origin matching allowing access only to specified frontends or local environments.
 * **Document Locking**: KYC files uploaded to private S3 buckets are never directly accessible; the system issues short-lived pre-signed URLs (5-minute expiry).

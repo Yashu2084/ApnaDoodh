@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Brand from "@/components/Brand";
 
+import { apiFetch, setCookie } from "@/lib/api-client";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -23,7 +25,7 @@ export default function LoginPage() {
     const loginPassword = customPass || password;
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -35,8 +37,14 @@ export default function LoginPage() {
         throw new Error(data.error || "Invalid credentials");
       }
 
-      // Successful login, trigger global nav update and redirect
-      // Wait, let's refresh or redirect, next middleware will route us
+      // Save tokens to cookies client-side for Next.js middleware visibility
+      if (data.accessToken) {
+        setCookie("apnadoodh_token", data.accessToken, 900); // 15 mins
+      }
+      if (data.refreshToken) {
+        setCookie("apnadoodh_refresh", data.refreshToken, 2592000); // 30 days
+      }
+
       router.refresh();
       
       const role = data.user.role;
