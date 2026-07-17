@@ -19,16 +19,27 @@ const port = process.env.PORT || 5000;
 
 const allowedOrigins = [
   "http://localhost:3000",
+  "http://localhost:3001",
   "https://www.apnadoodh.shop",
   "https://apnadoodh.shop"
 ];
 
-app.use( cors({
+app.use(
+  cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const isAllowed = allowedOrigins.includes(origin) || 
+                        origin.endsWith("apnadoodh.shop") || 
+                        origin.startsWith("http://localhost:") || 
+                        origin.startsWith("http://127.0.0.1:");
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        console.warn(`[CORS Blocked] Request from origin: ${origin}`);
+        callback(null, false);
       }
     },
     credentials: true,
