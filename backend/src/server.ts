@@ -23,8 +23,7 @@ const allowedOrigins = [
   "https://apnadoodh.shop"
 ];
 
-app.use(
-  cors({
+app.use( cors({
     origin(origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -63,5 +62,5 @@ app.use((req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`[ApnaDoodh Backend] Express server listening at http://localhost:${port}`);
+console.log("Allowed Origins:", allowedOrigins);
 });
