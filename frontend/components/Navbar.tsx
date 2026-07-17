@@ -8,6 +8,7 @@ import { ShoppingCart, Menu, X, MapPin, ChevronDown } from "lucide-react";
 import { useCart } from "@/components/CartProvider";
 import { useLocation } from "@/components/LocationProvider";
 import Brand from "@/components/Brand";
+import { apiFetch } from "@/lib/api-client";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -42,7 +43,7 @@ export default function Navbar() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await apiFetch("/api/auth/me");
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
@@ -60,7 +61,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await apiFetch("/api/auth/logout", { method: "POST" });
       setUser(null);
       router.push("/");
       router.refresh();

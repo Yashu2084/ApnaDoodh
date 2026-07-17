@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
       const refreshToken = request.cookies.get("apnadoodh_refresh")?.value;
       if (refreshToken) {
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://cmrn8qsu627kxx4dt8m4guunj.sin.prisma.build";
           const refreshRes = await fetch(`${apiUrl}/api/auth/refresh`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

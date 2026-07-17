@@ -18,7 +18,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ApnaDoodh - Premium Farm-Fresh Dairy Marketplace",
   description: "Gurugram's largest direct-to-home dairy marketplace. Browse verified local daily dairies near you, compare raw testing logs, and purchase dairy directly from the source.",
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.apnadoodh.shop"),
 };
 
 export default function RootLayout({

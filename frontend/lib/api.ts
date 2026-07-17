@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://cmrn8qsu627kxx4dt8m4guunj.sin.prisma.build";
 
 // Helper to read client-side cookie if needed
 export function getCookie(name: string): string | null {
