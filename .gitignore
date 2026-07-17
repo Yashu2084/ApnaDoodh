@@ -40,3 +40,4 @@ out/
 
 # Backup folders
 src-backup/
+.prisma/

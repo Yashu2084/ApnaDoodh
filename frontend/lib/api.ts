@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://cmrn8qsu627kxx4dt8m4guunj.sin.prisma.build";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://apnadoodh.onrender.com";
 
 // Helper to read client-side cookie if needed
 export function getCookie(name: string): string | null {
