@@ -24,29 +24,32 @@ const allowedOrigins = [
   "https://apnadoodh.shop"
 ];
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-      const isAllowed = allowedOrigins.includes(origin) || 
-                        origin.endsWith("apnadoodh.shop") || 
-                        origin.startsWith("http://localhost:") || 
-                        origin.startsWith("http://127.0.0.1:");
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        console.warn(`[CORS Blocked] Request from origin: ${origin}`);
-        callback(null, false);
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"]
-  })
-);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  const isAllowed = !origin || 
+                    allowedOrigins.includes(origin) || 
+                    origin.endsWith(".apnadoodh.shop") || 
+                    origin === "https://apnadoodh.shop" ||
+                    origin.startsWith("http://localhost:") || 
+                    origin.startsWith("http://127.0.0.1:");
+
+  if (isAllowed && origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie, X-Requested-With");
+
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
+  next();
+});
 
 // Middlewares
 app.use(express.json({ limit: "50mb" }));
