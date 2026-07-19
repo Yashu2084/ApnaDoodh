@@ -153,7 +153,7 @@ export default function ProductsSection() {
   return (
     <section
       id="products"
-      className="relative w-full min-h-[90vh] flex flex-col justify-center py-16 sm:py-24 overflow-hidden scroll-mt-24"
+      className="relative w-full min-h-screen flex flex-col justify-center py-20 sm:py-28 lg:py-32 overflow-hidden scroll-mt-24"
     >
       {/* Luxury Background Image with subtle alive zoom/pan animation */}
       <motion.div
@@ -188,7 +188,7 @@ export default function ProductsSection() {
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header Wrapper in Premium Apple-like Glassmorphic Capsule */}
-        <div className="mx-auto max-w-3xl text-center mb-16 p-6 sm:p-8 rounded-[2.5rem] bg-white/45 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)]">
+        <div className="mx-auto max-w-3xl text-center mb-16 p-6 sm:p-8 rounded-[2.5rem] bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_0_rgba(31,38,135,0.08)]">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">Fresh Produce</p>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
             Popular Marketplace Products
@@ -200,7 +200,7 @@ export default function ProductsSection() {
 
         {/* Main Carousel Stack Area */}
         <div
-          className="relative mx-auto max-w-4xl w-full min-h-[580px] sm:min-h-[500px] md:min-h-[440px] flex items-center justify-center"
+          className="relative mx-auto max-w-4xl w-full h-[520px] sm:h-[460px] md:h-[400px] flex items-center justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -209,7 +209,7 @@ export default function ProductsSection() {
           <button
             onClick={handlePrev}
             suppressHydrationWarning
-            className="absolute left-0 md:-left-12 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-800 shadow-lg backdrop-blur-xl transition hover:bg-white hover:border-white/80 hover:text-blue-700 active:scale-95 cursor-pointer"
+            className="absolute -left-3 md:-left-12 z-30 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/80 bg-white/90 text-slate-800 shadow-xl backdrop-blur-xl transition hover:bg-white hover:border-blue-400 hover:text-blue-700 active:scale-95 cursor-pointer"
             aria-label="Previous product"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -218,7 +218,7 @@ export default function ProductsSection() {
           <button
             onClick={handleNext}
             suppressHydrationWarning
-            className="absolute right-0 md:-right-12 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-800 shadow-lg backdrop-blur-xl transition hover:bg-white hover:border-white/80 hover:text-blue-700 active:scale-95 cursor-pointer"
+            className="absolute -right-3 md:-right-12 z-30 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/80 bg-white/90 text-slate-800 shadow-xl backdrop-blur-xl transition hover:bg-white hover:border-blue-400 hover:text-blue-700 active:scale-95 cursor-pointer"
             aria-label="Next product"
           >
             <ChevronRight className="h-5 w-5" />
@@ -237,7 +237,7 @@ export default function ProductsSection() {
           </div>
 
           {/* 2. Active Card with Slide Animation */}
-          <div className="w-full h-full relative overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/45 backdrop-blur-2xl shadow-[0_20px_50px_rgba(31,38,135,0.06)] hover:bg-white/55 hover:border-white/80 hover:shadow-[0_24px_60px_rgba(31,38,135,0.12)] transition-all duration-500">
+          <div className="w-full h-full relative overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/85 backdrop-blur-2xl shadow-[0_20px_50px_rgba(31,38,135,0.12)] hover:bg-white/95 hover:border-white/90 transition-all duration-500">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.article
                 key={activeIndex}
@@ -246,7 +246,7 @@ export default function ProductsSection() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="absolute inset-0 p-5 sm:p-8 flex flex-col justify-between w-full h-full overflow-y-auto"
+                className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-between w-full h-full"
               >
                 <div className="grid gap-8 sm:grid-cols-[1fr_1.2fr] items-center h-full">
                   

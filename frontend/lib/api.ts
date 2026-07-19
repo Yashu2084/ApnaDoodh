@@ -63,6 +63,16 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     });
   }
 
+  // Check if response returned an HTML page (e.g. 404 HTML or non-JSON response)
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("text/html")) {
+    return new Response(JSON.stringify({ error: "Endpoint returned HTML instead of JSON", user: null }), {
+      status: response.status || 404,
+      statusText: response.statusText || "Not Found",
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   // Auto-refresh token on 401 Unauthorized
   if (response.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/refresh") {
     const refreshToken = getCookie("apnadoodh_refresh");
