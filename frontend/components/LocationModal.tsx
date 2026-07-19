@@ -82,7 +82,7 @@ export default function LocationModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", duration: 0.4 }}
-            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-slate-200/80 bg-white/95 p-6 shadow-2xl backdrop-blur-xl"
+            className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[2.5rem] border border-slate-200/80 bg-white/95 p-5 sm:p-6 shadow-2xl backdrop-blur-xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">

@@ -67,7 +67,7 @@ export default function SearchSection() {
   }, []);
 
   return (
-    <section className="group relative w-screen left-1/2 -translate-x-1/2 min-h-[60vh] flex flex-col justify-center items-center py-10 overflow-hidden z-20">
+    <section className="group relative w-full min-h-[50vh] flex flex-col justify-center items-center py-12 sm:py-16 overflow-hidden z-20 scroll-mt-24">
       
       {/* Animated Scenic Background Image */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">

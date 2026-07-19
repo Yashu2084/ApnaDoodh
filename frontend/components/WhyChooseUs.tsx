@@ -63,7 +63,7 @@ export default function WhyChooseUs() {
   ];
 
   return (
-    <section className="group relative w-screen left-1/2 -translate-x-1/2 min-h-screen flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-24 overflow-hidden border-t border-slate-200">
+    <section id="why-us" className="group relative w-full min-h-[80vh] flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-16 sm:py-24 overflow-hidden border-t border-slate-200 scroll-mt-24">
       {/* Animated Scenic Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div

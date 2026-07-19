@@ -153,7 +153,7 @@ export default function ProductsSection() {
   return (
     <section
       id="products"
-      className="relative w-screen left-1/2 -translate-x-1/2 min-h-screen flex flex-col justify-center py-20 sm:py-28 overflow-hidden"
+      className="relative w-full min-h-[90vh] flex flex-col justify-center py-16 sm:py-24 overflow-hidden scroll-mt-24"
     >
       {/* Luxury Background Image with subtle alive zoom/pan animation */}
       <motion.div
@@ -209,7 +209,7 @@ export default function ProductsSection() {
           <button
             onClick={handlePrev}
             suppressHydrationWarning
-            className="absolute left-[-20px] md:left-[-60px] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-white/50 text-slate-800 shadow-lg backdrop-blur-xl transition hover:bg-white hover:border-white/80 hover:text-blue-700 active:scale-95 cursor-pointer"
+            className="absolute left-0 md:-left-12 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-800 shadow-lg backdrop-blur-xl transition hover:bg-white hover:border-white/80 hover:text-blue-700 active:scale-95 cursor-pointer"
             aria-label="Previous product"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -218,7 +218,7 @@ export default function ProductsSection() {
           <button
             onClick={handleNext}
             suppressHydrationWarning
-            className="absolute right-[-20px] md:right-[-60px] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-white/50 text-slate-800 shadow-lg backdrop-blur-xl transition hover:bg-white hover:border-white/80 hover:text-blue-700 active:scale-95 cursor-pointer"
+            className="absolute right-0 md:-right-12 z-20 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-800 shadow-lg backdrop-blur-xl transition hover:bg-white hover:border-white/80 hover:text-blue-700 active:scale-95 cursor-pointer"
             aria-label="Next product"
           >
             <ChevronRight className="h-5 w-5" />

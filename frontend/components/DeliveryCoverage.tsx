@@ -17,7 +17,7 @@ export default function DeliveryCoverage() {
   return (
     <section 
       id="coverage" 
-      className="w-full px-6 sm:px-12 lg:px-16 py-20 border-t border-slate-100 bg-white relative overflow-hidden"
+      className="w-full px-4 sm:px-8 lg:px-12 py-14 sm:py-20 border-t border-slate-100 bg-white relative overflow-hidden scroll-mt-24"
     >
       {/* Radial Dotted Pattern Background */}
       <div 

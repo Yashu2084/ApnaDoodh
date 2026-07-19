@@ -63,7 +63,7 @@ const featuredFarms: Farm[] = [
 
 export default function FarmerSection() {
   return (
-    <section id="farmers" className="group relative w-screen left-1/2 -translate-x-1/2 flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-20 overflow-hidden border-t border-slate-200">
+    <section id="farmers" className="group relative w-full flex flex-col justify-center px-4 sm:px-8 lg:px-12 py-16 sm:py-24 overflow-hidden border-t border-slate-200 scroll-mt-24">
       {/* Animated Scenic Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div

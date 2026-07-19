@@ -13,7 +13,7 @@ export default function DownloadApp() {
   ];
 
   return (
-    <section className="relative w-screen left-1/2 -translate-x-1/2 overflow-hidden flex items-center justify-center min-h-screen py-20 px-6 sm:px-12 lg:px-16">
+    <section className="relative w-full overflow-hidden flex items-center justify-center min-h-[80vh] py-14 sm:py-24 px-4 sm:px-8 lg:px-12 scroll-mt-24">
       {/* Animated Scenic Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div

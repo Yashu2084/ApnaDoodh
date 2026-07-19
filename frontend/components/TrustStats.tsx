@@ -98,7 +98,7 @@ export default function TrustStats() {
   ];
 
   return (
-    <section className="w-full px-6 sm:px-12 lg:px-16 py-16 bg-gradient-to-b from-white to-slate-50 border-t border-slate-100 relative overflow-hidden">
+    <section className="w-full px-4 sm:px-8 lg:px-12 py-12 sm:py-16 bg-gradient-to-b from-white to-slate-50 border-t border-slate-100 relative overflow-hidden scroll-mt-24">
       {/* Decorative Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-50/40 blur-3xl pointer-events-none -z-10" />
 

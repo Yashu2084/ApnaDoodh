@@ -23,7 +23,7 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="w-full px-6 sm:px-12 lg:px-16 py-20 bg-white border-t border-slate-100 relative overflow-hidden">
+    <section className="w-full px-4 sm:px-8 lg:px-12 py-14 sm:py-20 bg-white border-t border-slate-100 relative overflow-hidden scroll-mt-24">
       {/* Decorative Glow Blobs */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 rounded-full bg-blue-50/50 blur-3xl pointer-events-none -z-10" />
       <div className="absolute top-1/3 right-1/4 -translate-y-1/2 w-80 h-80 rounded-full bg-indigo-50/40 blur-3xl pointer-events-none -z-10" />

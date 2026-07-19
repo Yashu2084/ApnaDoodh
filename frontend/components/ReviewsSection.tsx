@@ -74,7 +74,7 @@ export default function ReviewsSection() {
     <section
       id="reviews"
       style={{ clipPath: "inset(0)" }}
-      className="relative left-1/2 w-screen -ml-[50vw] min-h-screen overflow-hidden border-t border-slate-100 py-20 sm:py-24 lg:py-28 flex flex-col justify-center"
+      className="relative w-full min-h-[80vh] overflow-hidden border-t border-slate-100 py-16 sm:py-24 flex flex-col justify-center scroll-mt-24"
     >
       {/* 1. Animated Scenic Background Image */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-30">

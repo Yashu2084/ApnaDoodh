@@ -9,7 +9,7 @@ export default function HeroSection() {
   return (
     <section 
       id="home" 
-      className="group relative w-screen left-1/2 -translate-x-1/2 min-h-screen flex items-center pt-32 pb-24 sm:pt-36 sm:pb-32 overflow-hidden"
+      className="group relative w-full min-h-[90vh] flex items-center pt-28 pb-16 sm:pt-36 sm:pb-28 overflow-hidden scroll-mt-24"
     >
       {/* Animated Scenic Background Image */}
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -41,7 +41,7 @@ export default function HeroSection() {
       </div>
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+        <div className="grid gap-12 lg:gap-16 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           {/* Left Typography Block */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -52,7 +52,7 @@ export default function HeroSection() {
             
 
             <div className="space-y-6">
-              <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.15]">
+              <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.15]">
                 Fresh Dairy Products <br />
                 <span className="bg-gradient-to-r from-blue-400 via-blue-200 to-sky-300 bg-clip-text text-transparent">
                   From Trusted Local Farmers

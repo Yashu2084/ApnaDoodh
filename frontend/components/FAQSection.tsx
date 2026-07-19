@@ -86,7 +86,7 @@ export default function FAQSection() {
     <section
       id="faq"
       style={{ clipPath: "inset(0)" }}
-      className="relative left-1/2 w-screen -ml-[50vw] min-h-screen overflow-hidden border-t border-slate-100/50 py-24 sm:py-28 lg:py-32 flex flex-col justify-center"
+      className="relative w-full min-h-[80vh] overflow-hidden border-t border-slate-100/50 py-16 sm:py-24 flex flex-col justify-center scroll-mt-24"
     >
       {/* 1. Animated Scenic Background Image */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none -z-30">

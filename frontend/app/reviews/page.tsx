@@ -57,7 +57,7 @@ export default function ReviewSystemPage() {
   };
 
   return (
-    <div className="relative w-screen left-1/2 -translate-x-1/2 min-h-screen pt-28 pb-12 sm:pt-36 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <div className="relative w-full min-h-[85vh] pt-28 pb-12 sm:pt-36 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden scroll-mt-24">
       {/* Premium Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div

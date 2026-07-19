@@ -164,7 +164,7 @@ export default function WhatsAppWidget() {
         {isOpen ? (
           <X className="h-6 w-6" />
         ) : (
-          <img src="/assets/logo/whatsapp.png" alt="WhatsApp" className="h-24 w-24 object-contain" />
+          <img src="/assets/logo/whatsapp.png" alt="WhatsApp" className="h-7 w-7 object-contain" />
         )}
       </motion.button>
     </div>

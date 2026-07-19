@@ -7,7 +7,7 @@ import { ArrowDown, Sparkles, ShieldCheck, Heart } from "lucide-react";
 
 export default function AboutHero() {
   return (
-    <section className="relative w-full min-h-[90vh] flex items-center justify-center overflow-hidden py-16 px-6 sm:px-12 lg:px-16 bg-white">
+    <section className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden py-16 px-4 sm:px-8 lg:px-12 bg-white scroll-mt-24">
       {/* Dynamic Aurora Gradient Background */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-[40%] -left-[20%] w-[80%] h-[80%] rounded-full bg-blue-100/40 blur-3xl animate-pulse" style={{ animationDuration: "12s" }} />

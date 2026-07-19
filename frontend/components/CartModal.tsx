@@ -53,14 +53,14 @@ export default function CartModal() {
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
           />
 
-          <div className="absolute inset-y-0 right-0 flex max-w-full pl-10">
+          <div className="absolute inset-y-0 right-0 flex max-w-full pl-2 sm:pl-10">
             {/* Drawer Panel */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="w-screen max-w-md bg-white p-6 shadow-2xl flex flex-col justify-between"
+              className="w-screen max-w-md bg-white p-4 sm:p-6 shadow-2xl flex flex-col justify-between h-full"
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
