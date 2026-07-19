@@ -42,7 +42,7 @@ export default function NearbyFarmersPage() {
   }).sort((a, b) => a.distance - b.distance);
 
   return (
-    <div className="py-8 sm:py-12">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16">
       <div className="mx-auto max-w-5xl px-4">
         
         {/* Header Block */}

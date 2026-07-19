@@ -51,7 +51,17 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     credentials: "include", // Ensures cookies are sent in cross-origin requests
   };
 
-  let response = await fetch(url, mergedOptions);
+  let response: Response;
+  try {
+    response = await fetch(url, mergedOptions);
+  } catch (err) {
+    // Gracefully catch network failures (e.g. backend cold start or offline)
+    return new Response(JSON.stringify({ error: "Backend service temporarily unavailable", user: null }), {
+      status: 503,
+      statusText: "Service Unavailable",
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   // Auto-refresh token on 401 Unauthorized
   if (response.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/refresh") {
@@ -73,11 +83,15 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
             
             // Retry the original request with the new access token
             headers.set("Authorization", `Bearer ${data.accessToken}`);
-            response = await fetch(url, {
-              ...options,
-              headers,
-              credentials: "include",
-            });
+            try {
+              response = await fetch(url, {
+                ...options,
+                headers,
+                credentials: "include",
+              });
+            } catch (retryErr) {
+              // Ignore retry error
+            }
           }
         }
       } catch (err) {

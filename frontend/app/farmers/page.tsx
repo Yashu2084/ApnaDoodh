@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export default function FarmersDirectoryPage() {
   return (
-    <div className="py-8">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16">
       <div className="text-center max-w-2xl mx-auto mb-6 px-4">
         <h1 className="text-4xl font-extrabold text-slate-950 tracking-tight">Our Heritage Farms</h1>
         <p className="mt-3 text-slate-500">

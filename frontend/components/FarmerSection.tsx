@@ -105,7 +105,7 @@ export default function FarmerSection() {
         </p>
       </div>
 
-      <div className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto w-full">
+      <div className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto w-full">
         {featuredFarms.map((farm, idx) => (
           <motion.article
             key={farm.id}

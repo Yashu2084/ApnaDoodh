@@ -231,7 +231,7 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <div className="pt-24 pb-8 sm:pt-28 sm:pb-12 bg-slate-50/50 min-h-screen">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16 bg-slate-50/50 min-h-screen">
       <div className="mx-auto max-w-6xl px-4">
         
         {/* Header Block */}

@@ -200,7 +200,7 @@ export default function ProductsSection() {
 
         {/* Main Carousel Stack Area */}
         <div
-          className="relative mx-auto max-w-4xl w-full h-[520px] sm:h-[460px] md:h-[400px] flex items-center justify-center"
+          className="relative mx-auto max-w-4xl w-full min-h-[580px] sm:min-h-[500px] md:min-h-[440px] flex items-center justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -246,7 +246,7 @@ export default function ProductsSection() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="absolute inset-0 p-6 sm:p-8 flex flex-col justify-center w-full h-full"
+                className="absolute inset-0 p-5 sm:p-8 flex flex-col justify-between w-full h-full overflow-y-auto"
               >
                 <div className="grid gap-8 sm:grid-cols-[1fr_1.2fr] items-center h-full">
                   

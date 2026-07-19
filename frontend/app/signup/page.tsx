@@ -58,7 +58,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="py-16 sm:py-24 max-w-md mx-auto px-4">
+    <div className="pt-28 pb-16 sm:pt-36 sm:pb-24 max-w-md mx-auto px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

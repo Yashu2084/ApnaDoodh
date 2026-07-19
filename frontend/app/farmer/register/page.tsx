@@ -44,7 +44,7 @@ export default function FarmerRegistrationPage() {
   };
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16">
       <div className="mx-auto max-w-xl px-4">
         
         {/* Registration Header */}

@@ -164,7 +164,7 @@ export default function ProductDetailsPage() {
     : { name: "Aravali Foothills Dairy", id: "aravali-pastures" };
 
   return (
-    <div className="py-8 sm:py-16">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16">
       <div className="mx-auto max-w-5xl px-4">
         
         {/* Main Grid */}

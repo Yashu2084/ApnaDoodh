@@ -33,7 +33,7 @@ export default function RootLayout({
           <CartProvider>
             <div className="flex flex-col min-h-screen bg-white text-slate-950 overflow-x-hidden w-full relative">
               <Navbar />
-              <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 flex-grow">
+              <main className="w-full flex-grow flex flex-col">
                 {children}
               </main>
               <Footer />

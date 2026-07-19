@@ -133,7 +133,7 @@ function FarmerStoreContent() {
       ];
 
   return (
-    <div className="py-4">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16">
       {/* Farm Hero Banner */}
       <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6 sm:p-10 mb-8 shadow-sm flex flex-col md:flex-row items-center gap-8">
         <div className="absolute top-0 right-0 h-40 w-40 bg-blue-100/40 rounded-full blur-3xl pointer-events-none -z-10" />

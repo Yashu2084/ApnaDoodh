@@ -127,7 +127,7 @@ export default function DairyRangesPage() {
   };
 
   return (
-    <div className="py-12 sm:py-16 overflow-hidden">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16 overflow-hidden">
       
       {/* Hero Header Section */}
       <section className="relative w-full rounded-[3.5rem] border border-slate-200/60 bg-gradient-to-br from-slate-50 via-white to-blue-50/20 p-8 sm:p-12 md:p-16 shadow-[0_20px_50px_rgba(53,107,233,0.04)] mb-16 overflow-hidden">
