@@ -12,14 +12,13 @@ interface LogoProps {
 }
 
 export default function Logo({
-  width = 130,
-  height = 103,
+  width = 120,
+  height = 95,
   className = "",
   priority = false,
   compact = false,
 }: LogoProps) {
   if (compact) {
-    // Compact version showing the centered circular emblem from the logo
     return (
       <div 
         className={`relative overflow-hidden rounded-full border border-slate-200/60 bg-white flex items-center justify-center shadow-sm shrink-0 ${className}`} 
@@ -27,9 +26,9 @@ export default function Logo({
       >
         <Image
           src="/assets/logo/logo.webp"
-          alt="DailyDoodh"
+          alt="ApnaDoodh Logo"
           width={38}
-          height={38}
+          height={30}
           priority={priority}
           className="object-contain select-none"
         />
@@ -41,11 +40,11 @@ export default function Logo({
     <div className={`relative shrink-0 select-none flex items-center justify-center ${className}`}>
       <Image
         src="/assets/logo/logo.webp"
-        alt="DailyDoodh Logo"
+        alt="ApnaDoodh Logo"
         width={width}
         height={height}
         priority={priority}
-        className="object-contain"
+        className="object-contain w-auto h-auto max-h-11 sm:max-h-13 transition-opacity duration-200"
       />
     </div>
   );

@@ -67,7 +67,9 @@ export default function Footer() {
           
           {/* Brand Info */}
           <div className="space-y-6">
-            <Brand width={120} height={95} />
+            <div className="inline-block bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/60 shadow-sm">
+              <Brand width={110} height={87} />
+            </div>
             <p className="text-sm leading-7 text-white/80">
               ApnaDoodh is Gurugram's largest direct dairy marketplace. Browse verified local farmers near you, compare raw testing logs, and purchase dairy directly from the source.
             </p>

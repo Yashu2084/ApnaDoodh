@@ -88,7 +88,7 @@ export default function Navbar() {
       >
         {/* Brand Logo & Location Selector */}
         <div className="flex items-center gap-4 sm:gap-6">
-          <Brand width={52} height={52} priority={true} />
+          <Brand width={60} height={48} priority={true} />
           
           {/* Location Selector */}
           <button
