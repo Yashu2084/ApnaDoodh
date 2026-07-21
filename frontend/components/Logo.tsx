@@ -44,7 +44,7 @@ export default function Logo({
         width={width}
         height={height}
         priority={priority}
-        className="object-contain w-auto h-auto max-h-11 sm:max-h-13 transition-opacity duration-200"
+        className="object-contain w-auto h-auto max-h-full"
       />
     </div>
   );

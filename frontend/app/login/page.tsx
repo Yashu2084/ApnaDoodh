@@ -65,18 +65,18 @@ export default function LoginPage() {
 
 
   return (
-    <div className="pt-28 pb-16 sm:pt-36 sm:pb-24 max-w-md mx-auto px-4">
+    <div className="pt-28 pb-16 sm:pt-36 sm:pb-24 w-full max-w-lg mx-auto px-4 sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-center mb-8"
       >
-        <div className="flex justify-center mb-2">
-          <Brand width={150} height={120} />
+        <div className="flex justify-center mb-3">
+          <Brand width={140} height={110} />
         </div>
-        <h1 className="text-3xl font-black text-slate-950 tracking-tight">Login to ApnaDoodh</h1>
-        <p className="mt-2 text-slate-500 text-sm">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">Login to ApnaDoodh</h1>
+        <p className="mt-2 text-slate-500 text-xs sm:text-sm">
           Access your personalized dashboard and manage your role.
         </p>
       </motion.div>
@@ -85,7 +85,7 @@ export default function LoginPage() {
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="bg-white border border-slate-200 rounded-[2rem] p-6 sm:p-8 shadow-xl relative overflow-hidden"
+        className="bg-white border border-slate-200 rounded-[2.5rem] p-5 sm:p-8 shadow-xl relative overflow-hidden w-full"
       >
         <div className="absolute top-0 right-0 h-32 w-32 bg-blue-50/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
