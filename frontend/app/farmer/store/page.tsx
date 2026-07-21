@@ -133,12 +133,12 @@ function FarmerStoreContent() {
       ];
 
   return (
-    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16">
+    <div className="pt-28 pb-12 sm:pt-36 sm:pb-16 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Farm Hero Banner */}
-      <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6 sm:p-10 mb-8 shadow-sm flex flex-col md:flex-row items-center gap-8">
+      <div className="relative overflow-hidden rounded-[2.5rem] border border-slate-200 bg-slate-50 p-6 sm:p-10 mb-8 shadow-sm flex flex-col md:flex-row items-center gap-6 sm:gap-8">
         <div className="absolute top-0 right-0 h-40 w-40 bg-blue-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
         
-        <div className="relative h-44 w-44 shrink-0 overflow-hidden rounded-[2rem] border border-slate-200 shadow-sm bg-white aspect-square">
+        <div className="relative h-36 w-36 sm:h-44 sm:w-44 shrink-0 overflow-hidden rounded-[2rem] border border-slate-200 shadow-sm bg-white aspect-square">
           <Image
             src={farm.image}
             alt={farm.name}
@@ -154,11 +154,11 @@ function FarmerStoreContent() {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-3xl font-extrabold text-slate-950 tracking-tight leading-none">{farm.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight leading-tight">{farm.name}</h1>
             <p className="text-xs text-slate-500">Managed by <strong>{farm.farmer}</strong> • {farm.location}</p>
           </div>
 
-          <div className="flex items-center justify-center md:justify-start gap-4 flex-wrap text-xs">
+          <div className="flex items-center justify-center md:justify-start gap-3 sm:gap-4 flex-wrap text-xs">
             <span className="flex items-center gap-1 font-bold text-slate-800">
               <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
               {farm.rating} (Verified Ratings)
@@ -175,7 +175,7 @@ function FarmerStoreContent() {
       </div>
 
       {/* Tab Menu */}
-      <div className="flex border-b border-slate-100 mb-8 overflow-x-auto gap-6 text-sm">
+      <div className="flex border-b border-slate-100 mb-8 overflow-x-auto gap-4 sm:gap-6 text-sm no-scrollbar">
         {[
           { id: "products", label: "Buy Fresh Dairy", icon: ShoppingBag },
           { id: "story", label: "Our Grazing Story", icon: Compass },
@@ -202,7 +202,7 @@ function FarmerStoreContent() {
       </div>
 
       {/* Tab Display Panel */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-200/80 p-6 sm:p-8 shadow-sm">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200/80 p-5 sm:p-8 shadow-sm">
         <AnimatePresence mode="wait">
           
           {/* Tab: Products */}
@@ -215,8 +215,8 @@ function FarmerStoreContent() {
               className="grid gap-6 sm:grid-cols-2"
             >
               {products.map((product) => (
-                <div key={product.name} className="border border-slate-200/70 rounded-3xl p-5 hover:border-blue-200 hover:shadow-md hover:shadow-blue-500/5 transition-all duration-300 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
+                <div key={product.name} className="border border-slate-200/70 bg-white rounded-3xl p-5 hover:border-blue-200 hover:shadow-md hover:shadow-blue-500/5 transition-all duration-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
                       <Image
                         src={product.image}
@@ -226,7 +226,7 @@ function FarmerStoreContent() {
                       />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="text-sm font-extrabold text-slate-900">{product.name}</h4>
                         <span className="text-[9px] font-bold bg-blue-50 border border-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{product.badge}</span>
                       </div>
@@ -245,7 +245,7 @@ function FarmerStoreContent() {
                       })
                     }
                     suppressHydrationWarning
-                    className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 active:scale-95 cursor-pointer shrink-0"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-slate-950 px-5 py-3 text-xs font-bold text-white transition hover:bg-blue-600 active:scale-95 cursor-pointer w-full sm:w-auto shrink-0 mt-1 sm:mt-0"
                   >
                     <ShoppingCart className="h-3.5 w-3.5" />
                     Add To Cart
