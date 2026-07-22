@@ -31,7 +31,7 @@ export default function WhatsAppWidget() {
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const supportNumber = "8279579636"; // ApnaDoodh Support Number
+  const supportNumber = "+91-8279579636"; // ApnaDoodh Support Number
 
   const options = [
     {

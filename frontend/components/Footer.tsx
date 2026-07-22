@@ -46,9 +46,9 @@ export default function Footer() {
   return (
     <footer 
       id="contact" 
-      className="relative overflow-hidden border-t border-white/10 pt-14 pb-8 w-full"
+      className="relative overflow-hidden border-t border-white/10 pt-20 pb-12 w-full"
       style={{
-        backgroundImage: "url('/assets/footer-bg.webp')",
+        backgroundImage: "url('/assets/footer-bg.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center bottom",
         backgroundRepeat: "no-repeat",
@@ -62,14 +62,54 @@ export default function Footer() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
+        {/* Core Value Highlights */}
+        <div className="mb-16 grid gap-6 sm:grid-cols-3">
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/10 p-5 shadow-lg backdrop-blur-md">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20 text-blue-200 border border-blue-400/20 shadow-inner">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+            </span>
+            <div>
+              <p className="font-semibold text-white">Cold Chain Courier</p>
+              <p className="text-xs text-blue-100/80">Milking to doorstep drops under 12 hrs</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/10 p-5 shadow-lg backdrop-blur-md">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20 text-blue-200 border border-blue-400/20 shadow-inner">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
+            </span>
+            <div>
+              <p className="font-semibold text-white">40+ Lab Audits Daily</p>
+              <p className="text-xs text-blue-100/80">Purity tested fat/solids verified</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/10 p-5 shadow-lg backdrop-blur-md">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/20 text-blue-200 border border-blue-400/20 shadow-inner">
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </span>
+            <div>
+              <p className="font-semibold text-white">Direct From Source</p>
+              <p className="text-xs text-blue-100/80">Vetted local family-owned farms</p>
+            </div>
+          </div>
+        </div>
+
         {/* Main Footer Content */}
-        <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.8fr] lg:gap-8 pb-10 border-b border-white/10">
+        <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1.8fr] lg:gap-8 pb-16 border-b border-white/10">
           
           {/* Brand Info */}
           <div className="space-y-6">
-            <div className="inline-block bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/60 shadow-sm">
-              <Brand width={110} height={87} />
-            </div>
+            <Brand width={120} height={95} />
             <p className="text-sm leading-7 text-white/80">
               ApnaDoodh is Gurugram's largest direct dairy marketplace. Browse verified local farmers near you, compare raw testing logs, and purchase dairy directly from the source.
             </p>
@@ -156,7 +196,6 @@ export default function Footer() {
                 </div>
                 <button
                   type="submit"
-                  suppressHydrationWarning
                   className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition hover:bg-blue-500 active:scale-[0.98] cursor-pointer"
                 >
                   Join
@@ -184,7 +223,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar: Copyright */}
-        <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between text-sm text-white/80">
+        <div className="mt-12 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between text-sm text-white/80">
           <div className="flex flex-col gap-2 sm:flex-row sm:gap-6">
             <p>© 2026 ApnaDoodh Marketplace. All rights reserved.</p>
             <div className="flex items-center gap-1.5">
