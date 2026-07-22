@@ -249,7 +249,7 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="md:hidden border-t border-white/30 bg-white/65 backdrop-blur-xl px-6 py-4 space-y-1 shadow-lg"
+            className="md:hidden border-t border-white/30 bg-white/65 backdrop-blur-xl px-6 py-4 space-y-2 shadow-lg"
           >
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
@@ -268,6 +268,54 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            {!checkingAuth && (
+              <div className="pt-4 border-t border-slate-100/50 space-y-2.5">
+                {user ? (
+                  <>
+                    <Link
+                      href={
+                        user.role === "SUPER_ADMIN"
+                          ? "/dashboard/admin"
+                          : user.role === "FARMER"
+                          ? "/dashboard/farmer"
+                          : "/dashboard/customer"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex h-11 w-full items-center justify-center rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-500/10 active:scale-95 transition"
+                    >
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-rose-50 text-rose-600 text-xs font-bold active:scale-95 transition cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link
+                      href="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-700 text-xs font-bold active:scale-95 transition"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex h-11 items-center justify-center rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md shadow-blue-500/10 active:scale-95 transition"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
