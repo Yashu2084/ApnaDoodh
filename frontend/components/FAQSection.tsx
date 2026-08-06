@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PREMIUM_EASE } from "@/lib/animations";
 
 interface FAQ {
   question: string;
@@ -296,7 +297,7 @@ export default function FAQSection() {
             return (
               <div
                 key={idx}
-                className="overflow-hidden rounded-3xl border border-white/60 bg-white/60 backdrop-blur-md transition-all duration-300 hover:bg-white/80 hover:border-blue-200/80 hover:shadow-lg hover:shadow-blue-500/5"
+                className="overflow-hidden rounded-3xl border border-white/50 bg-white/60 backdrop-blur-md transition-all duration-300 hover:bg-white/80 hover:border-blue-200/50 hover:shadow-[0_8px_24px_rgba(31,38,135,0.04)]"
               >
                 <button
                   onClick={() => toggleFAQ(idx)}
@@ -317,10 +318,10 @@ export default function FAQSection() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeInOut" }}
+                      transition={{ duration: 0.35, ease: PREMIUM_EASE }}
                     >
                       <div className="border-t border-white/40 p-6 pt-0 text-sm leading-7 text-slate-700 bg-blue-50/20 backdrop-blur-sm">
-                        <p className="mt-4">{faq.answer}</p>
+                        <p className="mt-4 text-justify">{faq.answer}</p>
                       </div>
                     </motion.div>
                   )}
@@ -331,7 +332,7 @@ export default function FAQSection() {
         </div>
 
         {/* Ask a Question Form */}
-        <div className="mt-20 bg-white/55 backdrop-blur-xl border border-white/80 rounded-[2.5rem] p-6 sm:p-10 shadow-[0_20px_50px_rgba(53,107,233,0.04)] relative overflow-hidden">
+        <div className="mt-20 bg-white/55 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 sm:p-10 shadow-[0_24px_64px_rgba(53,107,233,0.06)] relative overflow-hidden">
           <div className="absolute top-0 right-0 h-40 w-40 bg-blue-200/20 rounded-full blur-3xl pointer-events-none -z-10" />
           <div className="absolute -bottom-10 -left-10 h-40 w-40 bg-sky-200/20 rounded-full blur-3xl pointer-events-none -z-10" />
           
@@ -347,7 +348,7 @@ export default function FAQSection() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-8 space-y-4"
               >
-                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 mb-2">
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 mb-2 shadow-inner">
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
@@ -378,7 +379,7 @@ export default function FAQSection() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. Aman Gupta"
-                      className="w-full rounded-xl border border-white/60 py-3 px-4 text-xs outline-none focus:border-blue-500 bg-white/60 focus:bg-white/95 transition-all shadow-sm placeholder:text-slate-400 text-slate-800"
+                      className="w-full rounded-xl border border-white/60 py-3.5 px-4 text-xs outline-none focus:border-blue-500 bg-white/60 focus:bg-white/95 transition-all shadow-xs placeholder:text-slate-400 text-slate-800"
                       suppressHydrationWarning
                     />
                   </div>
@@ -390,7 +391,7 @@ export default function FAQSection() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="e.g. aman@gmail.com"
-                      className="w-full rounded-xl border border-white/60 py-3 px-4 text-xs outline-none focus:border-blue-500 bg-white/60 focus:bg-white/95 transition-all shadow-sm placeholder:text-slate-400 text-slate-800"
+                      className="w-full rounded-xl border border-white/60 py-3.5 px-4 text-xs outline-none focus:border-blue-500 bg-white/60 focus:bg-white/95 transition-all shadow-xs placeholder:text-slate-400 text-slate-800"
                       suppressHydrationWarning
                     />
                   </div>
@@ -404,20 +405,23 @@ export default function FAQSection() {
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
                     placeholder="Type your question here..."
-                    className="w-full rounded-xl border border-white/60 py-3 px-4 text-xs outline-none focus:border-blue-500 bg-white/60 focus:bg-white/95 transition-all shadow-sm placeholder:text-slate-400 text-slate-800"
+                    className="w-full rounded-xl border border-white/60 py-3 px-4 text-xs outline-none focus:border-blue-500 bg-white/60 focus:bg-white/95 transition-all shadow-xs placeholder:text-slate-400 text-slate-800"
                     suppressHydrationWarning
                   />
                 </div>
 
                 <div className="text-center pt-2">
-                  <button
+                  <motion.button
                     type="submit"
                     disabled={submitting}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-8 py-3.5 text-xs font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50"
+                    whileHover={{ scale: 1.02, y: -0.5 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 px-8 py-3.5 text-xs font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 cursor-pointer disabled:opacity-50"
                     suppressHydrationWarning
                   >
                     {submitting ? "Submitting Question..." : "Submit Question"}
-                  </button>
+                  </motion.button>
                 </div>
               </form>
             )}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { PREMIUM_EASE } from "@/lib/animations";
 
 interface Testimonial {
   name: string;
@@ -278,7 +279,7 @@ export default function ReviewsSection() {
         </div>
 
         <div className="relative mt-16 flex flex-col items-center">
-          <div className="relative w-full max-w-3xl overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/60 backdrop-blur-md p-8 shadow-xl shadow-slate-100/40 md:p-12 hover:bg-white/70 transition-all duration-300">
+          <div className="relative w-full max-w-3xl overflow-hidden rounded-[2.5rem] border border-white/50 bg-white/60 backdrop-blur-md p-8 shadow-[0_16px_48px_rgba(31,38,135,0.06)] md:p-12 hover:bg-white/75 hover:border-white/60 hover:shadow-[0_24px_64px_rgba(31,38,135,0.1)] transition-all duration-300">
             
             {/* Quote icon background */}
             <div className="absolute right-8 top-8 text-slate-100">
@@ -290,10 +291,10 @@ export default function ReviewsSection() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.4, ease: PREMIUM_EASE }}
                 className="flex flex-col gap-6"
               >
                 {/* Rating */}
@@ -306,7 +307,7 @@ export default function ReviewsSection() {
                 </div>
 
                 {/* Review body */}
-                <p className="text-lg leading-8 text-slate-800 font-medium relative z-10">
+                <p className="text-lg leading-8 text-slate-800 font-medium relative z-10 text-justify">
                   &ldquo;{testimonials[index].content}&rdquo;
                 </p>
 
@@ -320,7 +321,7 @@ export default function ReviewsSection() {
                     className="h-14 w-14 rounded-full object-cover border-2 border-blue-100 shadow-sm"
                   />
                   <div>
-                    <h4 className="font-semibold text-slate-955">{testimonials[index].name}</h4>
+                    <h4 className="font-semibold text-slate-950">{testimonials[index].name}</h4>
                     <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
                       <svg className="h-3.5 w-3.5 fill-blue-500 text-blue-500" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
@@ -335,26 +336,30 @@ export default function ReviewsSection() {
 
           {/* Slider controls */}
           <div className="mt-8 flex gap-4">
-            <button
+            <motion.button
               onClick={handlePrev}
               suppressHydrationWarning
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-white/60 backdrop-blur-md text-slate-600 transition hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-600 active:scale-95 shadow-md cursor-pointer"
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-white/60 backdrop-blur-md text-slate-600 transition hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-600 shadow-md cursor-pointer"
               aria-label="Previous review"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={handleNext}
               suppressHydrationWarning
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-white/60 backdrop-blur-md text-slate-600 transition hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-600 active:scale-95 shadow-md cursor-pointer"
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/60 bg-white/60 backdrop-blur-md text-slate-600 transition hover:border-blue-300 hover:bg-blue-50/80 hover:text-blue-600 shadow-md cursor-pointer"
               aria-label="Next review"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>

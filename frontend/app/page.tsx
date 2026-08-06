@@ -14,6 +14,7 @@ import SearchSection from "@/components/SearchSection";
 import WhyChooseUs from "@/components/WhyChooseUs";
 import TrustStats from "@/components/TrustStats";
 import DownloadApp from "@/components/DownloadApp";
+import { PREMIUM_EASE, staggerContainer, fadeInUpReveal } from "@/lib/animations";
 
 export default function Home() {
   return (
@@ -69,7 +70,7 @@ export default function Home() {
         </div>
 
         {/* Section Header wrapped in an enhanced liquid glass panel */}
-        <div className="relative z-10 mx-auto max-w-3xl text-center mb-16 p-8 sm:p-10 rounded-[2.5rem] border border-white/50 bg-white/75 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.18)]">
+        <div className="relative z-10 mx-auto max-w-3xl text-center mb-16 p-8 sm:p-10 rounded-[2.5rem] border border-white/50 bg-white/75 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.06)]">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-700">Traceability Lifecycle</p>
           <h2 className="mt-3.5 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
             How ApnaDoodh Works
@@ -79,7 +80,13 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto w-full">
+        <motion.div 
+          variants={staggerContainer(0.08)}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, amount: 0.1 }}
+          className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto w-full items-stretch"
+        >
           {[
             {
               step: "01",
@@ -110,24 +117,25 @@ export default function Home() {
             return (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="relative rounded-[2.5rem] border border-white/50 bg-white/80 p-6 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.12)] hover:bg-white/90 hover:border-white/70 hover:shadow-2xl transition-all duration-300"
+                variants={fadeInUpReveal}
+                whileHover={{ y: -6, scale: 1.015 }}
+                transition={{ duration: 0.3, ease: PREMIUM_EASE }}
+                className="relative rounded-[2.5rem] border border-white/50 bg-white/80 p-6 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.08)] hover:bg-white/90 hover:border-white/60 hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-black text-slate-400/80 font-inter">{item.step}</span>
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100/90 border border-blue-200/50 text-blue-700 shadow-xs">
-                    <Icon className="h-5 w-5" />
-                  </span>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-3xl font-black text-slate-400/80 font-inter">{item.step}</span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100/90 border border-blue-200/50 text-blue-700 shadow-xs">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                  </div>
+                  <h3 className="text-base font-extrabold text-slate-950 mt-6">{item.title}</h3>
+                  <p className="text-xs leading-5 text-slate-900 font-bold mt-2 text-justify">{item.desc}</p>
                 </div>
-                <h3 className="text-base font-extrabold text-slate-950 mt-6">{item.title}</h3>
-                <p className="text-xs leading-5 text-slate-900 font-bold mt-2 text-justify">{item.desc}</p>
               </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </section>
 
       {/* 4. Become A Seller Section */}
@@ -136,13 +144,13 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-5xl rounded-[3rem] border border-blue-100 bg-gradient-to-br from-blue-50/50 via-white to-blue-50/50 p-8 sm:p-12 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden"
+          transition={{ duration: 0.6, ease: PREMIUM_EASE }}
+          className="mx-auto max-w-5xl rounded-[3rem] border border-blue-100/60 bg-gradient-to-br from-blue-50/40 via-white to-blue-50/40 p-8 sm:p-12 shadow-[0_16px_48px_rgba(53,107,233,0.04)] flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 h-40 w-40 bg-blue-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
           
           <div className="space-y-4 max-w-xl text-center md:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-100/60 px-3.5 py-1 text-[10px] font-bold text-blue-700">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-100/60 px-3.5 py-1 text-[10px] font-bold text-blue-700 border border-blue-250/20 shadow-xs">
               <Tractor className="h-3.5 w-3.5" /> For Dairy Farmers
             </span>
             <h2 className="text-3xl font-extrabold text-slate-950 tracking-tight leading-tight">
@@ -154,13 +162,20 @@ export default function Home() {
           </div>
 
           <div className="shrink-0 w-full md:w-auto">
-            <Link
-              href="/farmer/register"
-              className="inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-blue-500/25 transition hover:bg-blue-500 active:scale-95 cursor-pointer"
+            <motion.div
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="w-full md:w-auto"
             >
-              Onboard Your Farm
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              <Link
+                href="/farmer/register"
+                className="inline-flex w-full md:w-auto items-center justify-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-blue-500/25 transition hover:bg-blue-550 cursor-pointer"
+              >
+                Onboard Your Farm
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
           </div>
         </motion.div>
       </section>

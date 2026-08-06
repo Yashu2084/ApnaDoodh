@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, ShoppingCart, ChevronLeft, ChevronRight, Award } from "lucide-react";
 import { useCart } from "./CartProvider";
+import { PREMIUM_EASE } from "@/lib/animations";
 
 interface Product {
   id: string;
@@ -88,26 +89,26 @@ const slideVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? "100%" : "-100%",
     opacity: 0,
-    scale: 0.95,
+    scale: 0.96,
   }),
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
     transition: {
-      x: { type: "spring", stiffness: 280, damping: 28 },
-      opacity: { duration: 0.25 },
-      scale: { duration: 0.25 },
+      x: { type: "spring", stiffness: 240, damping: 26 },
+      opacity: { duration: 0.35, ease: PREMIUM_EASE },
+      scale: { duration: 0.35, ease: PREMIUM_EASE },
     },
   },
   exit: (direction: number) => ({
     x: direction < 0 ? "100%" : "-100%",
     opacity: 0,
-    scale: 0.95,
+    scale: 0.96,
     transition: {
-      x: { type: "spring", stiffness: 280, damping: 28 },
-      opacity: { duration: 0.25 },
-      scale: { duration: 0.25 },
+      x: { type: "spring", stiffness: 240, damping: 26 },
+      opacity: { duration: 0.35, ease: PREMIUM_EASE },
+      scale: { duration: 0.35, ease: PREMIUM_EASE },
     },
   }),
 };
@@ -119,8 +120,6 @@ export default function ProductsSection() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const activeProduct = products[activeIndex];
-  const nextIndex = (activeIndex + 1) % products.length;
-  const nextProduct = products[nextIndex];
 
   // Auto rotation logic
   useEffect(() => {
@@ -188,7 +187,7 @@ export default function ProductsSection() {
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* Section Header Wrapper in Premium Apple-like Glassmorphic Capsule */}
-        <div className="mx-auto max-w-3xl text-center mb-16 p-6 sm:p-8 rounded-[2.5rem] bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_0_rgba(31,38,135,0.08)]">
+        <div className="mx-auto max-w-3xl text-center mb-16 p-6 sm:p-8 rounded-[2.5rem] bg-white/60 backdrop-blur-xl border border-white/80 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)]">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">Fresh Produce</p>
           <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
             Popular Marketplace Products
@@ -200,29 +199,33 @@ export default function ProductsSection() {
 
         {/* Main Carousel Stack Area */}
         <div
-          className="relative mx-auto max-w-4xl w-full h-[520px] sm:h-[460px] md:h-[400px] flex items-center justify-center"
+          className="relative mx-auto max-w-4xl w-full h-[540px] sm:h-[460px] md:h-[400px] flex items-center justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           
           {/* Navigation arrows (Chevron styles) */}
-          <button
+          <motion.button
             onClick={handlePrev}
             suppressHydrationWarning
-            className="absolute -left-3 md:-left-12 z-30 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/80 bg-white/90 text-slate-800 shadow-xl backdrop-blur-xl transition hover:bg-white hover:border-blue-400 hover:text-blue-700 active:scale-95 cursor-pointer"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            className="absolute -left-3 md:-left-12 z-30 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/70 bg-white/90 text-slate-800 shadow-lg backdrop-blur-md transition hover:bg-white hover:border-blue-400 hover:text-blue-700 cursor-pointer"
             aria-label="Previous product"
           >
             <ChevronLeft className="h-5 w-5" />
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             onClick={handleNext}
             suppressHydrationWarning
-            className="absolute -right-3 md:-right-12 z-30 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/80 bg-white/90 text-slate-800 shadow-xl backdrop-blur-xl transition hover:bg-white hover:border-blue-400 hover:text-blue-700 active:scale-95 cursor-pointer"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.92 }}
+            className="absolute -right-3 md:-right-12 z-30 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/70 bg-white/90 text-slate-800 shadow-lg backdrop-blur-md transition hover:bg-white hover:border-blue-400 hover:text-blue-700 cursor-pointer"
             aria-label="Next product"
           >
             <ChevronRight className="h-5 w-5" />
-          </button>
+          </motion.button>
 
           {/* 1. Next Product Preview in Background Stack */}
           <div className="absolute top-4 right-[-24px] sm:right-[-32px] -z-10 w-full h-full scale-[0.93] translate-x-8 opacity-25 blur-[1px] select-none pointer-events-none rounded-[2.5rem] border border-white/40 bg-white/20 backdrop-blur-2xl shadow-lg flex items-center p-6 sm:p-8">
@@ -237,7 +240,7 @@ export default function ProductsSection() {
           </div>
 
           {/* 2. Active Card with Slide Animation */}
-          <div className="w-full h-full relative overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/85 backdrop-blur-2xl shadow-[0_20px_50px_rgba(31,38,135,0.12)] hover:bg-white/95 hover:border-white/90 transition-all duration-500">
+          <div className="w-full h-full relative overflow-hidden rounded-[2.5rem] border border-white/70 bg-white/85 backdrop-blur-2xl shadow-[0_20px_50px_rgba(31,38,135,0.1)] hover:bg-white/95 hover:border-white/90 transition-all duration-500">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.article
                 key={activeIndex}
@@ -284,21 +287,21 @@ export default function ProductsSection() {
                       </div>
 
                       <Link href={`/products/${activeProduct.id}`}>
-                        <h3 className="text-xl sm:text-2xl font-black text-slate-955 leading-tight hover:text-blue-750 transition-colors">
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-950 leading-tight hover:text-blue-700 transition-colors">
                           {activeProduct.name}
                         </h3>
                       </Link>
 
                       <p className="text-lg font-black text-blue-700 leading-none">{activeProduct.price}</p>
                       
-                      <p className="text-xs sm:text-sm leading-6 text-slate-700 font-medium text-justify line-clamp-3 md:line-clamp-4">
+                      <p className="text-xs sm:text-sm leading-6 text-slate-700 font-medium text-justify line-clamp-2 sm:line-clamp-3 md:line-clamp-4">
                         {activeProduct.description}
                       </p>
                     </div>
 
                     {/* Actions buttons */}
                     <div className="flex items-center gap-3 pt-4 border-t border-slate-100/50">
-                      <button
+                      <motion.button
                         onClick={() =>
                           addToCart({
                             id: activeProduct.id,
@@ -309,17 +312,24 @@ export default function ProductsSection() {
                           })
                         }
                         suppressHydrationWarning
-                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-700 active:scale-95 cursor-pointer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-xs font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700 cursor-pointer"
                       >
                         <ShoppingCart className="h-4 w-4" />
                         Add To Cart
-                      </button>
-                      <Link
-                        href={`/farmer/store?farmId=${activeProduct.sellerId}`}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white/80 backdrop-blur-md px-5 py-3.5 text-xs font-bold text-slate-850 transition hover:bg-slate-950 hover:text-white hover:border-slate-950 active:scale-95 cursor-pointer"
+                      </motion.button>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        View Seller
-                      </Link>
+                        <Link
+                          href={`/farmer/store?farmId=${activeProduct.sellerId}`}
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white/80 backdrop-blur-md px-5 py-3.5 text-xs font-bold text-slate-850 transition hover:bg-slate-950 hover:text-white hover:border-slate-950 cursor-pointer"
+                        >
+                          View Seller
+                        </Link>
+                      </motion.div>
                     </div>
 
                   </div>
@@ -333,15 +343,16 @@ export default function ProductsSection() {
 
         {/* Progress Dots Indicator */}
         <div className="relative z-10 mt-10 flex justify-center">
-          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/45 backdrop-blur-xl border border-white/50 shadow-md">
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/45 backdrop-blur-xl border border-white/50 shadow-sm">
             {products.map((_, idx) => (
-              <button
+              <motion.button
                 key={idx}
                 onClick={() => handleDotClick(idx)}
                 suppressHydrationWarning
+                whileHover={{ scale: 1.2 }}
                 className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
                   idx === activeIndex
-                    ? "w-8 bg-blue-600 shadow-sm"
+                    ? "w-8 bg-blue-600 shadow-xs"
                     : "w-2.5 bg-slate-350 hover:bg-slate-400"
                 }`}
                 aria-label={`Go to product slide ${idx + 1}`}

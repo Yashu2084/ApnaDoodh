@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
+import { PREMIUM_EASE, staggerContainer, fadeInUpReveal } from "@/lib/animations";
 
 interface AnimatedNumberProps {
   value: string;
@@ -103,15 +104,20 @@ export default function TrustStats() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-50/40 blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto">
-        <div className="grid gap-6 grid-cols-2 lg:grid-cols-5 items-stretch">
+        <motion.div 
+          variants={staggerContainer(0.05)}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true, amount: 0.1 }}
+          className="grid gap-6 grid-cols-2 lg:grid-cols-5 items-stretch"
+        >
           {stats.map((stat, idx) => (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className={`rounded-3xl border border-slate-200/50 bg-white/60 p-6 text-center shadow-xs backdrop-blur-xs flex flex-col justify-between transition-all hover:bg-white hover:border-blue-200 hover:shadow-lg hover:-translate-y-1 ${
+              variants={fadeInUpReveal}
+              whileHover={{ y: -6, scale: 1.015 }}
+              transition={{ duration: 0.3, ease: PREMIUM_EASE }}
+              className={`rounded-3xl border border-white/50 bg-white/60 p-6 text-center shadow-[0_8px_32px_0_rgba(31,38,135,0.04)] backdrop-blur-md flex flex-col justify-between transition-all duration-300 hover:bg-white/85 hover:border-white/60 hover:shadow-[0_16px_32px_rgba(31,38,135,0.08)] ${
                 idx === 4 ? "col-span-2 lg:col-span-1" : ""
               }`}
             >
@@ -122,10 +128,10 @@ export default function TrustStats() {
                 </p>
                 <h4 className="text-xs font-bold text-slate-900 mt-2.5 leading-snug">{stat.label}</h4>
               </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-1 leading-normal">{stat.desc}</p>
+              <p className="text-[10px] text-slate-400 font-medium mt-2 leading-normal">{stat.desc}</p>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

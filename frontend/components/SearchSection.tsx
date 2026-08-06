@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, MapPin, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { PREMIUM_EASE } from "@/lib/animations";
 
 const PLACEHOLDERS = [
   "Search Milk...",
@@ -94,11 +95,11 @@ export default function SearchSection() {
 
       <div ref={containerRef} className="max-w-3xl w-full mx-auto px-6 relative z-10">
         {/* Glassmorphic Container for High Readability and Premium Feel */}
-        <div className="w-full relative flex flex-col items-center rounded-[2rem] border border-white/60 bg-white/45 backdrop-blur-xl p-5 sm:p-7 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] transition-all duration-500 hover:bg-white/55 hover:border-white/80 hover:shadow-[0_15px_45px_0_rgba(31,38,135,0.22)]">
+        <div className="w-full relative flex flex-col items-center rounded-[2rem] border border-white/60 bg-white/45 backdrop-blur-xl p-5 sm:p-7 shadow-[0_8px_32px_0_rgba(31,38,135,0.08)] transition-all duration-550 hover:bg-white/55 hover:border-white/80 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.15)]">
           
           {/* Header Block with Visible Text */}
           <div className="text-center mb-4">
-            <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-blue-700 bg-blue-100/50 px-2.5 py-0.5 rounded-full border border-blue-200/30">
+            <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-blue-700 bg-blue-100/50 px-2.5 py-0.5 rounded-full border border-blue-200/30 shadow-xs">
               Verified Dairy Marketplace
             </span>
             <h2 className="mt-2.5 text-xl sm:text-2xl font-black tracking-tight text-slate-950">
@@ -128,7 +129,7 @@ export default function SearchSection() {
                   setShowSuggestions(true);
                 }}
                 onFocus={() => setShowSuggestions(true)}
-                className="w-full rounded-full border border-white/60 bg-white/55 backdrop-blur-md py-3 pl-11 pr-5 text-xs font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500/80 focus:bg-white/80 focus:shadow-[0_0_0_4px_rgba(53,107,233,0.15)] placeholder:text-transparent shadow-md"
+                className="w-full rounded-full border border-white/50 bg-white/55 backdrop-blur-md py-3.5 pl-11 pr-5 text-xs font-semibold text-slate-900 outline-none transition-all duration-300 focus:border-blue-500/85 focus:bg-white/80 focus:shadow-[0_0_0_4px_rgba(53,107,233,0.1)] placeholder:text-transparent shadow-xs"
                 aria-label="Search ApnaDoodh"
               />
 
@@ -141,7 +142,7 @@ export default function SearchSection() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 0.8, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.35, ease: "easeInOut" }}
+                      transition={{ duration: 0.35, ease: PREMIUM_EASE }}
                       className="block"
                     >
                       {PLACEHOLDERS[index]}
@@ -153,13 +154,14 @@ export default function SearchSection() {
 
             {/* Filter Toggle Button - Glassmorphic and Animated */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, y: -0.5 }}
               whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-all duration-300 cursor-pointer shadow-md ${
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-all duration-300 cursor-pointer shadow-xs ${
                 showFilters || selectedFilter !== "all"
-                  ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25"
-                  : "bg-white/50 border-white/60 text-slate-700 hover:bg-white/80 hover:text-slate-900"
+                  ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
+                  : "bg-white/45 border-white/50 text-slate-700 hover:bg-white/60 hover:text-slate-900 hover:border-blue-200"
               }`}
               title="Toggle Filters"
             >
@@ -173,9 +175,10 @@ export default function SearchSection() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 15 }}
-                  className="absolute top-full left-0 right-0 z-50 overflow-hidden rounded-[2rem] border border-white/60 bg-white/90 shadow-2xl backdrop-blur-xl mt-2 max-w-full"
+                  transition={{ duration: 0.4, ease: PREMIUM_EASE }}
+                  className="absolute top-full left-0 right-0 z-50 overflow-hidden rounded-[2rem] border border-white/50 bg-white/95 shadow-[0_20px_50px_rgba(31,38,135,0.1)] backdrop-blur-xl mt-2.5 max-w-full"
                 >
-                  <div className="p-4 border-b border-white/20 flex justify-between items-center bg-white/40">
+                  <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-white/60">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       {query ? "Matching Results" : "Suggested Searches"}
                     </span>
@@ -191,7 +194,7 @@ export default function SearchSection() {
                           key={idx}
                           href={item.href}
                           onClick={() => setShowSuggestions(false)}
-                          className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-white/45 transition border border-transparent hover:border-white/30 cursor-pointer group"
+                          className="flex items-center justify-between rounded-xl px-4 py-3 hover:bg-slate-50 transition border border-transparent hover:border-slate-100 cursor-pointer group"
                         >
                           <div className="flex items-center gap-3">
                             <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${
@@ -230,7 +233,8 @@ export default function SearchSection() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="w-full overflow-hidden mt-3 rounded-2xl bg-white/30 border border-white/40 p-3 flex gap-2 flex-wrap items-center justify-center backdrop-blur-md"
+                transition={{ duration: 0.35, ease: PREMIUM_EASE }}
+                className="w-full overflow-hidden mt-3.5 rounded-2xl bg-white/20 border border-white/40 p-3 flex gap-2 flex-wrap items-center justify-center backdrop-blur-md shadow-inner"
               >
                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-600 mr-2">Filter By:</span>
                 {[
@@ -238,17 +242,20 @@ export default function SearchSection() {
                   { id: "product", label: "Products Only" },
                   { id: "farmer", label: "Farmers Only" },
                 ].map((f) => (
-                  <button
+                  <motion.button
                     key={f.id}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
                     onClick={() => setSelectedFilter(f.id)}
-                    className={`rounded-full px-4 py-1.5 text-xs font-semibold border transition cursor-pointer active:scale-95 ${
+                    className={`rounded-full px-4 py-1.5 text-xs font-semibold border transition cursor-pointer ${
                       selectedFilter === f.id
                         ? "bg-blue-600 border-blue-500 text-white shadow-sm"
-                        : "bg-white/45 border-white/50 text-slate-700 hover:bg-white/60"
+                        : "bg-white/60 border-white/40 text-slate-700 hover:bg-white hover:text-blue-600 hover:border-blue-100"
                     }`}
                   >
                     {f.label}
-                  </button>
+                  </motion.button>
                 ))}
               </motion.div>
             )}

@@ -9,6 +9,7 @@ import { useCart } from "@/components/CartProvider";
 import { useLocation } from "@/components/LocationProvider";
 import Brand from "@/components/Brand";
 import { apiFetch } from "@/lib/api-client";
+import { PREMIUM_EASE } from "@/lib/animations";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -74,11 +75,11 @@ export default function Navbar() {
     <motion.header
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      transition={{ duration: 0.6, ease: PREMIUM_EASE }}
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "bg-white/55 backdrop-blur-xl border-b border-white/70 shadow-[0_8px_32px_0_rgba(31,38,135,0.08),0_0_20px_0_rgba(53,107,233,0.15)]"
-          : "bg-white/35 backdrop-blur-lg border-b border-white/50 shadow-[0_4px_16px_0_rgba(31,38,135,0.03)]"
+          ? "bg-white/70 backdrop-blur-xl border-b border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.06)]"
+          : "bg-white/40 backdrop-blur-md border-b border-white/20 shadow-[0_4px_20px_0_rgba(31,38,135,0.02)]"
       }`}
     >
       <div
@@ -91,10 +92,13 @@ export default function Navbar() {
           <Brand width={60} height={48} priority={true} />
           
           {/* Location Selector */}
-          <button
+          <motion.button
             onClick={openLocationModal}
             suppressHydrationWarning
-            className="flex items-center gap-1.5 rounded-xl border border-white/60 bg-white/50 py-1 px-2 sm:py-1.5 sm:px-3 shadow-sm backdrop-blur-md transition hover:border-blue-300 hover:bg-white/75 hover:shadow-md active:scale-95 cursor-pointer text-left"
+            whileHover={{ scale: 1.02, y: -0.5 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="flex items-center gap-1.5 rounded-xl border border-white/50 bg-white/45 py-1 px-2 sm:py-1.5 sm:px-3 shadow-xs backdrop-blur-md transition-all hover:border-blue-300 hover:bg-white/60 hover:shadow-[0_4px_16px_rgba(53,107,233,0.08)] cursor-pointer text-left"
           >
             <MapPin className="h-4 w-4 text-blue-600 shrink-0" />
             <div className="hidden sm:block">
@@ -110,7 +114,7 @@ export default function Navbar() {
                 <ChevronDown className="h-3 w-3 text-blue-600" />
               </p>
             </div>
-          </button>
+          </motion.button>
         </div>
 
         {/* Desktop Navigation Links */}
@@ -171,12 +175,19 @@ export default function Navbar() {
                   >
                     Login
                   </Link>
-                  <Link
-                    href="/signup"
-                    className="rounded-full bg-blue-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-500 shadow-md shadow-blue-500/10 hover:shadow-blue-500/25 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -0.5 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="inline-block"
                   >
-                    Sign Up
-                  </Link>
+                    <Link
+                      href="/signup"
+                      className="rounded-full bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/10 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all cursor-pointer block"
+                    >
+                      Sign Up
+                    </Link>
+                  </motion.div>
                 </>
               )}
             </div>
@@ -185,10 +196,13 @@ export default function Navbar() {
 
         {/* Shopping Cart & Action Buttons */}
         <div className="flex items-center gap-3">
-          <button
+          <motion.button
             onClick={() => setIsCartOpen(true)}
             suppressHydrationWarning
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/60 bg-white/50 text-slate-600 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-blue-400 hover:bg-white/75 hover:text-blue-600 hover:shadow-md active:scale-95 cursor-pointer"
+            whileHover={{ scale: 1.05, y: -0.5 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-white/50 bg-white/45 text-slate-600 shadow-xs backdrop-blur-md transition-all hover:border-blue-450 hover:bg-white/60 hover:text-blue-600 hover:shadow-[0_4px_16px_rgba(53,107,233,0.08)] cursor-pointer"
             aria-label="Shopping Cart"
           >
             <ShoppingCart className="h-4.5 w-4.5" />
@@ -204,7 +218,7 @@ export default function Navbar() {
                 </motion.span>
               )}
             </AnimatePresence>
-          </button>
+          </motion.button>
 
           {/* Mobile Auth Button */}
           <div className="md:hidden flex items-center">
@@ -231,13 +245,15 @@ export default function Navbar() {
           </div>
 
           {/* Hamburger Menu for Mobile */}
-          <button
+          <motion.button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-white/60 bg-white/50 text-slate-600 shadow-sm hover:border-blue-300 hover:text-blue-600 transition active:scale-95 cursor-pointer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl border border-white/50 bg-white/45 text-slate-600 shadow-xs hover:border-blue-300 hover:text-blue-600 transition cursor-pointer"
             aria-label="Toggle Menu"
           >
             {isMobileMenuOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
-          </button>
+          </motion.button>
         </div>
       </div>
 

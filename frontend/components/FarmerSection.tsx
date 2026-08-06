@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Star, Award, ShieldCheck, ArrowRight, Compass } from "lucide-react";
+import { Star, Award, ArrowRight, Compass } from "lucide-react";
+import { PREMIUM_EASE, staggerContainer, fadeInUpReveal } from "@/lib/animations";
 
 interface Farm {
   id: string;
@@ -95,7 +96,7 @@ export default function FarmerSection() {
       </div>
 
       {/* Section Header wrapped in a liquid glass panel */}
-      <div className="relative z-10 mx-auto max-w-3xl text-center mb-16 p-8 sm:p-10 rounded-[2.5rem] border border-white/60 bg-white/45 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.15)]">
+      <div className="relative z-10 mx-auto max-w-3xl text-center mb-16 p-8 sm:p-10 rounded-[2.5rem] border border-white/50 bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.06)]">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-700">Pure Source Traceability</p>
         <h2 className="mt-3.5 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
           Meet Our Heritage Farmers
@@ -105,15 +106,20 @@ export default function FarmerSection() {
         </p>
       </div>
 
-      <div className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto w-full">
+      <motion.div 
+        variants={staggerContainer(0.08)}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.1 }}
+        className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto w-full items-stretch"
+      >
         {featuredFarms.map((farm, idx) => (
           <motion.article
             key={farm.id}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
-            transition={{ duration: 0.6, delay: idx * 0.08 }}
-            className="group relative overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/50 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-2 hover:bg-white/65 hover:border-white/80 hover:shadow-[0_15px_45px_0_rgba(31,38,135,0.18)] flex flex-col justify-between"
+            variants={fadeInUpReveal}
+            whileHover={{ y: -6, scale: 1.015 }}
+            transition={{ duration: 0.3, ease: PREMIUM_EASE }}
+            className="group relative overflow-hidden rounded-[2.5rem] border border-white/50 bg-white/45 p-5 shadow-[0_8px_32px_0_rgba(31,38,135,0.08)] backdrop-blur-xl transition-all duration-300 hover:bg-white/60 hover:border-white/70 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.15)] flex flex-col justify-between h-full"
           >
             <div>
               {/* Cover Image & Distance */}
@@ -169,26 +175,40 @@ export default function FarmerSection() {
 
             {/* View Farmer Store CTA */}
             <div className="pt-6">
-              <Link
-                href={`/farmer/store?farmId=${farm.id}`}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/40 bg-white/80 py-3 text-xs font-bold text-slate-800 transition duration-300 hover:bg-slate-950 hover:text-white hover:border-slate-950 active:scale-95 cursor-pointer shadow-xs"
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="w-full"
               >
-                Visit Farm Store
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
+                <Link
+                  href={`/farmer/store?farmId=${farm.id}`}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/80 py-3 text-xs font-bold text-slate-800 transition duration-300 hover:bg-slate-950 hover:text-white hover:border-slate-950 cursor-pointer shadow-xs"
+                >
+                  Visit Farm Store
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </motion.div>
             </div>
           </motion.article>
         ))}
-      </div>
+      </motion.div>
 
       <div className="relative z-10 text-center mt-12">
-        <Link
-          href="/farmers/nearby"
-          className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-xs font-bold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-500 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        <motion.div
+          whileHover={{ scale: 1.02, y: -1 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="inline-block"
         >
-          Discover Nearby Farmers
-          <Compass className="h-4 w-4" />
-        </Link>
+          <Link
+            href="/farmers/nearby"
+            className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-8 py-4 text-xs font-bold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-500 cursor-pointer"
+          >
+            Discover Nearby Farmers
+            <Compass className="h-4 w-4" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

@@ -3,6 +3,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Leaf, Coins, Lock, Truck, Star } from "lucide-react";
+import { PREMIUM_EASE, staggerContainer, fadeInUpReveal } from "@/lib/animations";
 
 export default function WhyChooseUs() {
   const cards = [
@@ -96,7 +97,7 @@ export default function WhyChooseUs() {
       </div>
 
       {/* Section Header wrapped in a liquid glass panel */}
-      <div className="relative z-10 mx-auto max-w-3xl text-center mb-16 p-8 sm:p-10 rounded-[2.5rem] border border-white/40 bg-white/60 backdrop-blur-md shadow-xl">
+      <div className="relative z-10 mx-auto max-w-3xl text-center mb-16 p-8 sm:p-10 rounded-[2.5rem] border border-white/50 bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(31,38,135,0.06)]">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-blue-700">Platform Core Values</p>
         <h2 className="mt-3.5 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
           Why Choose ApnaDoodh
@@ -107,32 +108,38 @@ export default function WhyChooseUs() {
       </div>
 
       {/* Cards Grid */}
-      <div className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto w-full">
+      <motion.div 
+        variants={staggerContainer(0.06)}
+        initial="initial"
+        whileInView="animate"
+        viewport={{ once: true, amount: 0.1 }}
+        className="relative z-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto w-full items-stretch"
+      >
         {cards.map((card, idx) => {
           const Icon = card.icon;
           return (
             <motion.div
               key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.08 }}
+              variants={fadeInUpReveal}
               whileHover={{ y: -6, scale: 1.015 }}
-              className="group relative rounded-[2rem] border border-white/45 bg-white/70 p-8 shadow-lg backdrop-blur-md transition-all duration-300 hover:bg-white/85 hover:border-white/60 hover:shadow-2xl"
+              transition={{ duration: 0.3, ease: PREMIUM_EASE }}
+              className="group relative rounded-[2rem] border border-white/50 bg-white/70 p-8 shadow-[0_8px_32px_0_rgba(31,38,135,0.08)] backdrop-blur-md transition-all duration-300 hover:bg-white/85 hover:border-white/60 hover:shadow-[0_16px_48px_0_rgba(31,38,135,0.15)] flex flex-col justify-between h-full"
             >
-              <div className="flex items-center gap-4">
-                <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.bgColor} ${card.color} border border-white/40 transition group-hover:scale-110 duration-300 shadow-xs`}>
-                  <Icon className="h-5.5 w-5.5" />
-                </span>
-                <h3 className="text-base font-extrabold text-slate-950">{card.title}</h3>
+              <div>
+                <div className="flex items-center gap-4">
+                  <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.bgColor} ${card.color} border border-white/40 transition group-hover:scale-110 duration-300 shadow-xs`}>
+                    <Icon className="h-5.5 w-5.5" />
+                  </span>
+                  <h3 className="text-base font-extrabold text-slate-950">{card.title}</h3>
+                </div>
+                <p className="text-xs leading-6 text-slate-800 font-semibold mt-4 text-justify">
+                  {card.desc}
+                </p>
               </div>
-              <p className="text-xs leading-6 text-slate-800 font-semibold mt-4 text-justify">
-                {card.desc}
-              </p>
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </section>
   );
 }
