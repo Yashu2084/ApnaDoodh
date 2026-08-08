@@ -1,13 +1,44 @@
+import { Pool, QueryResult, QueryResultRow } from "pg";
 import crypto from "crypto";
-import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+// =========================================================================
+// POSTGRESQL CONNECTION POOL SETUP
+// =========================================================================
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Determine if SSL is required (e.g. Render, Supabase, Neon, AWS RDS)
+const isSslRequired =
+  process.env.NODE_ENV === "production" ||
+  Boolean(
+    connectionString &&
+      !connectionString.includes("localhost") &&
+      !connectionString.includes("127.0.0.1")
+  );
+
+export const pool = new Pool({
+  connectionString:
+    connectionString || "postgresql://postgres:postgres@localhost:5432/apnadoodh",
+  ssl: isSslRequired ? { rejectUnauthorized: false } : undefined,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+pool.on("error", (err) => {
+  console.error("[PostgreSQL Pool Error]:", err.message);
+});
+
+export async function query<T extends QueryResultRow = any>(
+  text: string,
+  params?: any[]
+): Promise<QueryResult<T>> {
+  return await pool.query<T>(text, params);
+}
+
+// =========================================================================
+// DATA MODELS & INTERFACES
+// =========================================================================
 
 export interface User {
   id: string;
@@ -115,6 +146,138 @@ export interface AuditLog {
   details: string;
 }
 
+// =========================================================================
+// ROW MAPPERS (Transforms Postgres rows into typed interfaces)
+// =========================================================================
+
+function mapUser(u: any): User {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    passwordHash: u.passwordHash,
+    role: u.role,
+    createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : String(u.createdAt),
+    walletBalance: u.walletBalance !== null && u.walletBalance !== undefined ? parseFloat(u.walletBalance) : undefined,
+    kycStatus: u.kycStatus || undefined,
+    kycGovIdUrl: u.kycGovIdUrl || undefined,
+    kycFssaiUrl: u.kycFssaiUrl || undefined,
+    kycDocumentExpiry: u.kycDocumentExpiry instanceof Date ? u.kycDocumentExpiry.toISOString() : (u.kycDocumentExpiry ? String(u.kycDocumentExpiry) : undefined),
+    location: u.location || undefined,
+    joinedDate: u.joinedDate || undefined,
+    herdSize: u.herdSize || undefined,
+    storeName: u.storeName || undefined,
+    storeDesc: u.storeDesc || undefined,
+    storePhone: u.storePhone || undefined,
+    storeAddress: u.storeAddress || undefined,
+    deliveryRadius: u.deliveryRadius || undefined,
+    dispatchTime: u.dispatchTime || undefined,
+    deliveryFee: u.deliveryFee !== null && u.deliveryFee !== undefined ? parseFloat(u.deliveryFee) : undefined,
+    status: u.status || "Active",
+    wishlist: Array.isArray(u.wishlist) ? u.wishlist : [],
+  };
+}
+
+function mapProduct(p: any): Product {
+  return {
+    id: p.id,
+    name: p.name,
+    price: parseFloat(p.price),
+    unit: p.unit,
+    description: p.description,
+    image: p.image,
+    stock: parseInt(p.stock, 10),
+    category: p.category,
+    farmerId: p.farmerId,
+    status: p.status || "Active",
+    badge: p.badge || undefined,
+    rating: p.rating !== null && p.rating !== undefined ? parseFloat(p.rating) : 5.0,
+  };
+}
+
+function mapDeliveryItem(d: any): DeliveryItem {
+  return {
+    id: d.id,
+    customerId: d.customerId,
+    customerName: d.customerName,
+    address: d.address,
+    date: d.date,
+    product: d.product,
+    quantity: d.quantity,
+    price: parseFloat(d.price),
+    status: d.status || "Scheduled",
+    farmerId: d.farmerId,
+    skippedDates: Array.isArray(d.skippedDates) ? d.skippedDates : [],
+    temperatureLogs: Array.isArray(d.temperatureLogs) ? d.temperatureLogs.map((t: any) => parseFloat(t)) : [],
+  };
+}
+
+function mapReview(r: any): Review {
+  return {
+    id: r.id,
+    customerId: r.customerId,
+    customerName: r.customerName,
+    farmerId: r.farmerId,
+    farmerName: r.farmerName,
+    rating: parseInt(r.rating, 10),
+    text: r.text,
+    date: r.date,
+    product: r.product,
+    status: r.status || "Approved",
+  };
+}
+
+function mapTransaction(t: any): Transaction {
+  return {
+    id: t.id,
+    userId: t.userId,
+    amount: parseFloat(t.amount),
+    type: t.type,
+    description: t.description,
+    createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : String(t.createdAt),
+  };
+}
+
+function mapPlatformSettings(s: any): PlatformSettings {
+  return {
+    commissionRate: parseFloat(s.commissionRate),
+    baseDeliveryFee: parseFloat(s.baseDeliveryFee),
+    payoutCycle: s.payoutCycle,
+    kycRequired: Boolean(s.kycRequired),
+  };
+}
+
+function mapTrackingLocation(t: any): TrackingLocation {
+  return {
+    lat: parseFloat(t.lat),
+    lng: parseFloat(t.lng),
+    lastUpdated: t.lastUpdated instanceof Date ? t.lastUpdated.toISOString() : String(t.lastUpdated),
+  };
+}
+
+function mapRefreshToken(t: any): RefreshToken {
+  return {
+    token: t.token,
+    userId: t.userId,
+    expiresAt: t.expiresAt instanceof Date ? t.expiresAt.toISOString() : String(t.expiresAt),
+  };
+}
+
+function mapAuditLog(l: any): AuditLog {
+  return {
+    id: l.id,
+    timestamp: l.timestamp instanceof Date ? l.timestamp.toISOString() : String(l.timestamp),
+    action: l.action,
+    adminId: l.adminId,
+    adminName: l.adminName,
+    details: l.details,
+  };
+}
+
+// =========================================================================
+// PASSWORD HASHING & VERIFICATION
+// =========================================================================
+
 export function hashPassword(password: string): string {
   try {
     const bcrypt = eval("require")("bcryptjs");
@@ -157,768 +320,752 @@ export function comparePassword(password: string, hash: string): boolean {
   }
 }
 
-function mapUser(u: any): User {
-  return {
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    passwordHash: u.passwordHash,
-    role: u.role as any,
-    createdAt: u.createdAt.toISOString(),
-    walletBalance: u.walletBalance !== null ? u.walletBalance : undefined,
-    kycStatus: u.kycStatus !== null ? u.kycStatus : undefined,
-    kycGovIdUrl: u.kycGovIdUrl !== null ? u.kycGovIdUrl : undefined,
-    kycFssaiUrl: u.kycFssaiUrl !== null ? u.kycFssaiUrl : undefined,
-    kycDocumentExpiry: u.kycDocumentExpiry !== null ? u.kycDocumentExpiry.toISOString() : undefined,
-    location: u.location !== null ? u.location : undefined,
-    joinedDate: u.joinedDate !== null ? u.joinedDate : undefined,
-    herdSize: u.herdSize !== null ? u.herdSize : undefined,
-    storeName: u.storeName !== null ? u.storeName : undefined,
-    storeDesc: u.storeDesc !== null ? u.storeDesc : undefined,
-    storePhone: u.storePhone !== null ? u.storePhone : undefined,
-    storeAddress: u.storeAddress !== null ? u.storeAddress : undefined,
-    deliveryRadius: u.deliveryRadius !== null ? u.deliveryRadius : undefined,
-    dispatchTime: u.dispatchTime !== null ? u.dispatchTime : undefined,
-    deliveryFee: u.deliveryFee !== null ? u.deliveryFee : undefined,
-    status: u.status as any,
-    wishlist: u.wishlist,
-  };
-}
+// =========================================================================
+// SCHEMA BOOTSTRAP (Non-destructive CREATE TABLE IF NOT EXISTS)
+// =========================================================================
 
-function mapProduct(p: any): Product {
-  return {
-    id: p.id,
-    name: p.name,
-    price: p.price,
-    unit: p.unit,
-    description: p.description,
-    image: p.image,
-    stock: p.stock,
-    category: p.category,
-    farmerId: p.farmerId,
-    status: p.status as any,
-    badge: p.badge !== null ? p.badge : undefined,
-    rating: p.rating !== null ? p.rating : undefined,
-  };
-}
+let schemaInitialized = false;
+let schemaInitPromise: Promise<void> | null = null;
 
-function mapDeliveryItem(d: any): DeliveryItem {
-  return {
-    id: d.id,
-    customerId: d.customerId,
-    customerName: d.customerName,
-    address: d.address,
-    date: d.date,
-    product: d.product,
-    quantity: d.quantity,
-    price: d.price,
-    status: d.status as any,
-    farmerId: d.farmerId,
-    skippedDates: d.skippedDates,
-  };
-}
+export async function initSchema(): Promise<void> {
+  if (schemaInitialized) return;
+  if (schemaInitPromise) return schemaInitPromise;
 
-function mapReview(r: any): Review {
-  return {
-    id: r.id,
-    customerId: r.customerId,
-    customerName: r.customerName,
-    farmerId: r.farmerId,
-    farmerName: r.farmerName,
-    rating: r.rating,
-    text: r.text,
-    date: r.date,
-    product: r.product,
-    status: r.status as any,
-  };
-}
+  schemaInitPromise = (async () => {
+    try {
+      // 1. User Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "User" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "name" VARCHAR(255) NOT NULL,
+          "email" VARCHAR(255) UNIQUE NOT NULL,
+          "passwordHash" TEXT NOT NULL,
+          "role" VARCHAR(50) DEFAULT 'CUSTOMER',
+          "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          "walletBalance" DOUBLE PRECISION DEFAULT 1500.0,
+          "kycStatus" VARCHAR(50),
+          "kycGovIdUrl" TEXT,
+          "kycFssaiUrl" TEXT,
+          "kycDocumentExpiry" TIMESTAMP WITH TIME ZONE,
+          "location" TEXT,
+          "joinedDate" VARCHAR(100),
+          "herdSize" VARCHAR(100),
+          "storeName" VARCHAR(255),
+          "storeDesc" TEXT,
+          "storePhone" VARCHAR(100),
+          "storeAddress" TEXT,
+          "deliveryRadius" VARCHAR(100),
+          "dispatchTime" VARCHAR(100),
+          "deliveryFee" DOUBLE PRECISION DEFAULT 0.0,
+          "status" VARCHAR(50) DEFAULT 'Active',
+          "wishlist" TEXT[] DEFAULT '{}'
+        );
+      `);
 
-function mapTransaction(t: any): Transaction {
-  return {
-    id: t.id,
-    userId: t.userId,
-    amount: t.amount,
-    type: t.type as any,
-    description: t.description,
-    createdAt: t.createdAt.toISOString(),
-  };
-}
+      // 2. Product Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "Product" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "name" VARCHAR(255) NOT NULL,
+          "price" DOUBLE PRECISION NOT NULL,
+          "unit" VARCHAR(100) NOT NULL,
+          "description" TEXT NOT NULL,
+          "image" TEXT NOT NULL,
+          "stock" INTEGER NOT NULL,
+          "category" VARCHAR(100) NOT NULL,
+          "farmerId" VARCHAR(255) NOT NULL,
+          "status" VARCHAR(50) DEFAULT 'Active',
+          "badge" VARCHAR(100),
+          "rating" DOUBLE PRECISION DEFAULT 5.0
+        );
+      `);
 
-function mapPlatformSettings(s: any): PlatformSettings {
-  return {
-    commissionRate: s.commissionRate,
-    baseDeliveryFee: s.baseDeliveryFee,
-    payoutCycle: s.payoutCycle,
-    kycRequired: s.kycRequired,
-  };
-}
+      // 3. DeliveryItem Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "DeliveryItem" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "customerId" VARCHAR(255) NOT NULL,
+          "customerName" VARCHAR(255) NOT NULL,
+          "address" TEXT NOT NULL,
+          "date" VARCHAR(100) NOT NULL,
+          "product" VARCHAR(255) NOT NULL,
+          "quantity" VARCHAR(100) NOT NULL,
+          "price" DOUBLE PRECISION NOT NULL,
+          "status" VARCHAR(50) DEFAULT 'Scheduled',
+          "farmerId" VARCHAR(255) NOT NULL,
+          "skippedDates" TEXT[] DEFAULT '{}',
+          "temperatureLogs" DOUBLE PRECISION[] DEFAULT '{}'
+        );
+      `);
 
-function mapTrackingLocation(t: any): TrackingLocation {
-  return {
-    lat: t.lat,
-    lng: t.lng,
-    lastUpdated: t.lastUpdated.toISOString(),
-  };
-}
+      // 4. Review Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "Review" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "customerId" VARCHAR(255) NOT NULL,
+          "customerName" VARCHAR(255) NOT NULL,
+          "farmerId" VARCHAR(255) NOT NULL,
+          "farmerName" VARCHAR(255) NOT NULL,
+          "rating" INTEGER NOT NULL,
+          "text" TEXT NOT NULL,
+          "date" VARCHAR(100) NOT NULL,
+          "product" VARCHAR(255) NOT NULL,
+          "status" VARCHAR(50) DEFAULT 'Approved'
+        );
+      `);
 
-function mapRefreshToken(t: any): RefreshToken {
-  return {
-    token: t.token,
-    userId: t.userId,
-    expiresAt: t.expiresAt.toISOString(),
-  };
-}
+      // 5. Transaction Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "Transaction" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "userId" VARCHAR(255) NOT NULL,
+          "amount" DOUBLE PRECISION NOT NULL,
+          "type" VARCHAR(50) NOT NULL,
+          "description" TEXT NOT NULL,
+          "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+      `);
 
-function mapAuditLog(l: any): AuditLog {
-  return {
-    id: l.id,
-    timestamp: l.timestamp.toISOString(),
-    action: l.action,
-    adminId: l.adminId,
-    adminName: l.adminName,
-    details: l.details,
-  };
-}
+      // 6. PlatformSettings Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "PlatformSettings" (
+          "id" INTEGER PRIMARY KEY DEFAULT 1,
+          "commissionRate" DOUBLE PRECISION DEFAULT 10.0,
+          "baseDeliveryFee" DOUBLE PRECISION DEFAULT 15.0,
+          "payoutCycle" VARCHAR(100) DEFAULT 'Weekly',
+          "kycRequired" BOOLEAN DEFAULT true
+        );
+      `);
 
-export async function seedIfNeeded() {
-  const userCount = await prisma.user.count();
-  if (userCount > 0) return;
+      // 7. TrackingLocation Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "TrackingLocation" (
+          "id" INTEGER PRIMARY KEY DEFAULT 1,
+          "lat" DOUBLE PRECISION DEFAULT 28.4595,
+          "lng" DOUBLE PRECISION DEFAULT 77.0266,
+          "lastUpdated" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+      `);
 
-  const adminPass = hashPassword("admin123");
-  const customerPass = hashPassword("customer123");
-  const farmerPass = hashPassword("farmer123");
+      // 8. RefreshToken Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "RefreshToken" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "token" TEXT UNIQUE NOT NULL,
+          "userId" VARCHAR(255) NOT NULL,
+          "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL
+        );
+      `);
 
-  await prisma.user.createMany({
-    data: [
-      {
-        id: "admin-01",
-        name: "ApnaDoodh Admin",
-        email: "admin@apnadoodh.com",
-        passwordHash: adminPass,
-        role: "SUPER_ADMIN",
-        joinedDate: "Jan 12, 2026",
-      },
-      {
-        id: "customer-01",
-        name: "Rahul Verma",
-        email: "customer@apnadoodh.com",
-        passwordHash: customerPass,
-        role: "CUSTOMER",
-        walletBalance: 1430.0,
-        location: "Flat 402, Block C, Maple Heights, Sector 56, Gurugram, Haryana - 122011",
-        joinedDate: "Jan 15, 2026",
-        status: "Active",
-        wishlist: ["ghee", "butter"],
-      },
-      {
-        id: "farmer-01",
-        name: "Sukhdev Singh",
-        email: "farmer@apnadoodh.com",
-        passwordHash: farmerPass,
-        role: "FARMER",
-        kycStatus: "Verified",
-        kycGovIdUrl: "gov-id-farmer-01.pdf",
-        kycFssaiUrl: "fssai-farmer-01.pdf",
-        kycDocumentExpiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-        storeName: "Govardhan A2 Dairy",
-        storeDesc: "Premium grass-fed Gir cow milk, pure Vedic-churned ghee, and traditional dairy products delivered directly from farm to table.",
-        storePhone: "+91 98765 00000",
-        storeAddress: "Farm No. 4, Aravali Foothills Rural Zone, near Sector 62, Gurugram, Haryana",
-        deliveryRadius: "8 km",
-        dispatchTime: "5:00 AM",
-        deliveryFee: 0.0,
-        joinedDate: "Jan 12, 2026",
-        herdSize: "35 Cows",
-      },
-      {
-        id: "farmer-02",
-        name: "Manpreet Singh",
-        email: "aravali@gmail.com",
-        passwordHash: farmerPass,
-        role: "FARMER",
-        kycStatus: "Verified",
-        kycGovIdUrl: "gov-id-farmer-02.pdf",
-        kycFssaiUrl: "fssai-farmer-02.pdf",
-        kycDocumentExpiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 300),
-        storeName: "Aravali Foothills Dairy",
-        storeDesc: "Handcrafted paneer and fresh white table butter made daily in rural Gurugram.",
-        storePhone: "+91 98765 11111",
-        storeAddress: "Sector 71 rural pastures, Gurugram",
-        deliveryRadius: "6 km",
-        dispatchTime: "5:30 AM",
-        deliveryFee: 15.0,
-        joinedDate: "Feb 05, 2026",
-        herdSize: "20 Cows, 10 Buffaloes",
-      },
-      {
-        id: "farmer-03",
-        name: "Murrah Heights",
-        email: "murrah@gmail.com",
-        passwordHash: farmerPass,
-        role: "FARMER",
-        kycStatus: "Pending",
-        kycGovIdUrl: "gov-id-farmer-03.pdf",
-        kycFssaiUrl: "fssai-farmer-03.pdf",
-        kycDocumentExpiry: new Date(Date.now() + 1000 * 60 * 60 * 24 * 180),
-        storeName: "Murrah Heights Farm",
-        storeDesc: "High fat Murrah buffalo milk from purebred cattle.",
-        storePhone: "+91 98765 22222",
-        storeAddress: "Sohna Road, Gurugram",
-        deliveryRadius: "10 km",
-        dispatchTime: "4:45 AM",
-        deliveryFee: 20.0,
-        joinedDate: "June 20, 2026",
-        herdSize: "25 Buffaloes",
-      }
-    ]
-  });
+      // 9. AuditLog Table
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "AuditLog" (
+          "id" VARCHAR(255) PRIMARY KEY,
+          "timestamp" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          "action" VARCHAR(255) NOT NULL,
+          "adminId" VARCHAR(255) NOT NULL,
+          "adminName" VARCHAR(255) NOT NULL,
+          "details" TEXT NOT NULL
+        );
+      `);
 
-  await prisma.product.createMany({
-    data: [
-      {
-        id: "cow-milk",
-        name: "A2 Cow Milk",
-        price: 99,
-        unit: "1 Litre",
-        description: "Sourced from pasture-fed A2 Gir cows. Naturally sweet, highly digestible, antibiotic-free, and delivered cold in eco-friendly glass bottles.",
-        image: "/apnadoodh_cow_milk.webp",
-        stock: 150,
-        category: "Milk",
-        farmerId: "farmer-01",
-        status: "Active",
-        badge: "Best Seller",
-        rating: 4.9
-      },
-      {
-        id: "paneer",
-        name: "Handcrafted Paneer",
-        price: 249,
-        unit: "250g",
-        description: "Freshly curdled cottage cheese handmade every morning. Exceedingly soft, moisture-rich, starch-free, and contains zero additives.",
-        image: "/apnadoodh_paneer.webp",
-        stock: 35,
-        category: "Paneer",
-        farmerId: "farmer-02",
-        status: "Active",
-        badge: "Freshly Made",
-        rating: 4.9
-      },
-      {
-        id: "curd",
-        name: "Probiotic Curd (Dahi)",
-        price: 89,
-        unit: "500g",
-        description: "Slow-cultured over 12 hours with active probiotic strains in clay pots. Thick, velvety, and naturally sweet cooling side dish.",
-        image: "/apnadoodh_curd.webp",
-        stock: 100,
-        category: "Curd",
-        farmerId: "farmer-01",
-        status: "Active",
-        badge: "Probiotic Rich",
-        rating: 4.8
-      },
-      {
-        id: "ghee",
-        name: "A2 Desi Cow Ghee",
-        price: 649,
-        unit: "500ml",
-        description: "Golden ghee churned via traditional bilona curd curdling. Boasts a rich, grainy texture, immense nutritional value, and clean aroma.",
-        image: "/apnadoodh_ghee.webp",
-        stock: 45,
-        category: "Ghee",
-        farmerId: "farmer-01",
-        status: "Active",
-        badge: "Bilona Method",
-        rating: 5.0
-      },
-      {
-        id: "butter",
-        name: "Fresh White Butter",
-        price: 229,
-        unit: "250g",
-        description: "Hand-churned unsalted table butter made from fresh dairy cow cream. Rich, smooth taste, perfect for traditional Indian breads.",
-        image: "/apnadoodh_butter.webp",
-        stock: 20,
-        category: "Butter",
-        farmerId: "farmer-02",
-        status: "Active",
-        badge: "100% Organic",
-        rating: 4.9
-      }
-    ]
-  });
-
-  await prisma.deliveryItem.createMany({
-    data: [
-      {
-        id: "DLV-901",
-        customerId: "customer-01",
-        customerName: "Rahul Verma",
-        address: "Flat 402, Block C, Sector 56, Gurugram",
-        date: "June 24, 2026",
-        product: "A2 Cow Milk",
-        quantity: "1 Litre",
-        price: 99.0,
-        status: "Scheduled",
-        farmerId: "farmer-01"
-      },
-      {
-        id: "DLV-902",
-        customerId: "customer-01",
-        customerName: "Rahul Verma",
-        address: "Flat 402, Block C, Sector 56, Gurugram",
-        date: "June 25, 2026",
-        product: "A2 Cow Milk",
-        quantity: "1 Litre",
-        price: 99.0,
-        status: "Scheduled",
-        farmerId: "farmer-01"
-      },
-      {
-        id: "DLV-903",
-        customerId: "customer-01",
-        customerName: "Rahul Verma",
-        address: "Flat 402, Block C, Sector 56, Gurugram",
-        date: "June 23, 2026",
-        product: "A2 Cow Milk",
-        quantity: "1 Litre",
-        price: 99.0,
-        status: "Delivered",
-        farmerId: "farmer-01"
-      },
-      {
-        id: "DLV-904",
-        customerId: "customer-01",
-        customerName: "Rahul Verma",
-        address: "Flat 402, Block C, Sector 56, Gurugram",
-        date: "June 22, 2026",
-        product: "A2 Cow Milk + Paneer",
-        quantity: "1 Litre + 250g",
-        price: 348.0,
-        status: "Delivered",
-        farmerId: "farmer-01"
-      },
-      {
-        id: "DLV-905",
-        customerId: "customer-01",
-        customerName: "Rahul Verma",
-        address: "Flat 402, Block C, Sector 56, Gurugram",
-        date: "June 21, 2026",
-        product: "A2 Cow Milk",
-        quantity: "1 Litre",
-        price: 99.0,
-        status: "Delivered",
-        farmerId: "farmer-01"
-      }
-    ]
-  });
-
-  await prisma.review.createMany({
-    data: [
-      {
-        id: "REV-501",
-        customerId: "customer-01",
-        customerName: "Rahul Verma",
-        farmerId: "farmer-01",
-        farmerName: "Govardhan A2 Dairy",
-        rating: 5,
-        text: "Excellent quality milk! There is a distinct thickness and natural sweetness in the A2 milk.",
-        date: "June 12, 2026",
-        product: "A2 Cow Milk",
-        status: "Approved"
-      },
-      {
-        id: "REV-502",
-        customerId: "user-ananya",
-        customerName: "Ananya Sharma",
-        farmerId: "farmer-02",
-        farmerName: "Aravali Foothills Dairy",
-        rating: 2,
-        text: "The delivery courier drops the bottle too loud at 5 AM. Milk tastes fine though.",
-        date: "June 15, 2026",
-        product: "A2 Cow Milk",
-        status: "Flagged"
-      },
-      {
-        id: "REV-503",
-        customerId: "user-suresh",
-        customerName: "Suresh Mehra",
-        farmerId: "farmer-03",
-        farmerName: "Krishna Dairy Farms",
-        rating: 1,
-        text: "SCAM! DO NOT BUY MILK! DILUTED WITH SEWAGE WATER!!",
-        date: "June 18, 2026",
-        product: "Milk",
-        status: "Flagged"
-      }
-    ]
-  });
-
-  await prisma.transaction.create({
-    data: {
-      id: "TX-101",
-      userId: "customer-01",
-      amount: 1000.0,
-      type: "CREDIT",
-      description: "Wallet UPI Top-up",
+      schemaInitialized = true;
+    } catch (err: any) {
+      console.error("[PostgreSQL Schema Init Warning]:", err.message);
     }
-  });
+  })();
 
-  await prisma.platformSettings.create({
-    data: {
-      id: 1,
-      commissionRate: 10.0,
-      baseDeliveryFee: 15.0,
-      payoutCycle: "Weekly",
-      kycRequired: true
-    }
-  });
-
-  await prisma.trackingLocation.create({
-    data: {
-      id: 1,
-      lat: 28.4595,
-      lng: 77.0266,
-    }
-  });
+  return schemaInitPromise;
 }
 
-// User CRUD operations
+// =========================================================================
+// SEEDING (Only if Database is Fresh/Empty)
+// =========================================================================
+
+export async function seedIfNeeded(): Promise<void> {
+  await initSchema();
+
+  try {
+    const res = await pool.query<{ count: string }>('SELECT COUNT(*) as count FROM "User"');
+    const userCount = parseInt(res.rows[0]?.count || "0", 10);
+    if (userCount > 0) return;
+
+    console.log("[PostgreSQL] Empty database detected. Seeding initial baseline accounts...");
+
+    const adminPass = hashPassword("admin123");
+    const customerPass = hashPassword("customer123");
+    const farmerPass = hashPassword("farmer123");
+
+    // 1. Seed Users
+    await pool.query(
+      `INSERT INTO "User" (
+        "id", "name", "email", "passwordHash", "role", "joinedDate"
+      ) VALUES ($1, $2, $3, $4, $5, $6)
+      ON CONFLICT ("id") DO NOTHING`,
+      ["admin-01", "ApnaDoodh Admin", "admin@apnadoodh.com", adminPass, "SUPER_ADMIN", "Jan 12, 2026"]
+    );
+
+    await pool.query(
+      `INSERT INTO "User" (
+        "id", "name", "email", "passwordHash", "role", "walletBalance", "location", "joinedDate", "status", "wishlist"
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      ON CONFLICT ("id") DO NOTHING`,
+      [
+        "customer-01",
+        "Rahul Verma",
+        "customer@apnadoodh.com",
+        customerPass,
+        "CUSTOMER",
+        1430.0,
+        "Flat 402, Block C, Maple Heights, Sector 56, Gurugram, Haryana - 122011",
+        "Jan 15, 2026",
+        "Active",
+        ["ghee", "butter"],
+      ]
+    );
+
+    await pool.query(
+      `INSERT INTO "User" (
+        "id", "name", "email", "passwordHash", "role", "kycStatus", "kycGovIdUrl", "kycFssaiUrl",
+        "kycDocumentExpiry", "storeName", "storeDesc", "storePhone", "storeAddress", "deliveryRadius",
+        "dispatchTime", "deliveryFee", "joinedDate", "herdSize"
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      ON CONFLICT ("id") DO NOTHING`,
+      [
+        "farmer-01",
+        "Sukhdev Singh",
+        "farmer@apnadoodh.com",
+        farmerPass,
+        "FARMER",
+        "Verified",
+        "gov-id-farmer-01.pdf",
+        "fssai-farmer-01.pdf",
+        new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+        "Govardhan A2 Dairy",
+        "Premium grass-fed Gir cow milk, pure Vedic-churned ghee, and traditional dairy products delivered directly from farm to table.",
+        "+91 98765 00000",
+        "Farm No. 4, Aravali Foothills Rural Zone, near Sector 62, Gurugram, Haryana",
+        "8 km",
+        "5:00 AM",
+        0.0,
+        "Jan 12, 2026",
+        "35 Cows",
+      ]
+    );
+
+    await pool.query(
+      `INSERT INTO "User" (
+        "id", "name", "email", "passwordHash", "role", "kycStatus", "kycGovIdUrl", "kycFssaiUrl",
+        "kycDocumentExpiry", "storeName", "storeDesc", "storePhone", "storeAddress", "deliveryRadius",
+        "dispatchTime", "deliveryFee", "joinedDate", "herdSize"
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      ON CONFLICT ("id") DO NOTHING`,
+      [
+        "farmer-02",
+        "Manpreet Singh",
+        "aravali@gmail.com",
+        farmerPass,
+        "FARMER",
+        "Verified",
+        "gov-id-farmer-02.pdf",
+        "fssai-farmer-02.pdf",
+        new Date(Date.now() + 1000 * 60 * 60 * 24 * 300),
+        "Aravali Foothills Dairy",
+        "Handcrafted paneer and fresh white table butter made daily in rural Gurugram.",
+        "+91 98765 11111",
+        "Sector 71 rural pastures, Gurugram",
+        "6 km",
+        "5:30 AM",
+        15.0,
+        "Feb 05, 2026",
+        "22 Buffaloes & 10 Cows",
+      ]
+    );
+
+    // 2. Seed Products
+    const productsSeed = [
+      ["prod-1", "Pure A2 Gir Cow Raw Milk", 85.0, "1 Liter", "Farm fresh, unpasteurized, non-homogenized pure A2 milk from grass-fed indigenous Gir cows.", "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&q=80&w=800", 45, "A2 Milk", "farmer-01", "Active", "Bestseller", 4.9],
+      ["prod-2", "Traditional Bilona A2 Desi Ghee", 1450.0, "500 ml", "Made using the ancient Vedic Bilona method from curd churned butter of grass-fed Gir cows.", "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=800", 20, "Ghee", "farmer-01", "Active", "Vedic Churned", 5.0],
+      ["prod-3", "Fresh Malai Paneer", 120.0, "250g", "Soft, melt-in-mouth cottage cheese crafted from fresh full-cream milk every morning.", "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&q=80&w=800", 30, "Paneer", "farmer-02", "Active", "Fresh Daily", 4.8],
+      ["prod-4", "Artisanal White Makkhan", 220.0, "250g", "Unsalted traditional white table butter churned fresh every dawn from whole milk.", "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&q=80&w=800", 15, "Butter", "farmer-02", "Active", "No Additives", 4.9],
+      ["prod-5", "Fresh Raw Buffalo Milk", 75.0, "1 Liter", "Rich, creamy 7.5% fat whole buffalo milk ideal for kheer, tea, and thick curd.", "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&q=80&w=800", 60, "Buffalo Milk", "farmer-02", "Active", "Rich & Creamy", 4.7],
+      ["prod-6", "Probiotic Natural Set Dahi", 60.0, "400g", "Thick, naturally fermented clay-pot curd rich in gut-healthy traditional probiotics.", "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&q=80&w=800", 25, "Curd", "farmer-01", "Active", "Probiotic", 4.8],
+    ];
+
+    for (const p of productsSeed) {
+      await pool.query(
+        `INSERT INTO "Product" (
+          "id", "name", "price", "unit", "description", "image", "stock", "category", "farmerId", "status", "badge", "rating"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT ("id") DO NOTHING`,
+        p
+      );
+    }
+
+    // 3. Seed PlatformSettings & TrackingLocation
+    await pool.query(
+      `INSERT INTO "PlatformSettings" ("id", "commissionRate", "baseDeliveryFee", "payoutCycle", "kycRequired")
+       VALUES (1, 10.0, 15.0, 'Weekly', true)
+       ON CONFLICT ("id") DO NOTHING`
+    );
+
+    await pool.query(
+      `INSERT INTO "TrackingLocation" ("id", "lat", "lng", "lastUpdated")
+       VALUES (1, 28.4595, 77.0266, NOW())
+       ON CONFLICT ("id") DO NOTHING`
+    );
+
+    console.log("[PostgreSQL] Seed data loaded successfully.");
+  } catch (err: any) {
+    console.error("[PostgreSQL Seeding Warning]:", err.message);
+  }
+}
+
+// =========================================================================
+// USER OPERATIONS
+// =========================================================================
+
 export async function getUsers(): Promise<User[]> {
   await seedIfNeeded();
-  const list = await prisma.user.findMany();
-  return list.map(mapUser);
+  const res = await pool.query('SELECT * FROM "User" ORDER BY "createdAt" ASC');
+  return res.rows.map(mapUser);
+}
+
+export async function getUserById(id: string): Promise<User | null> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "User" WHERE "id" = $1 LIMIT 1', [id]);
+  return res.rows[0] ? mapUser(res.rows[0]) : null;
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "User" WHERE LOWER("email") = LOWER($1) LIMIT 1', [email]);
+  return res.rows[0] ? mapUser(res.rows[0]) : null;
 }
 
 export async function addUser(user: Omit<User, "id" | "createdAt">): Promise<User> {
   await seedIfNeeded();
-  const newUser = await prisma.user.create({
-    data: {
-      name: user.name,
-      email: user.email,
-      passwordHash: user.passwordHash,
-      role: user.role as any,
-      walletBalance: user.role === "CUSTOMER" ? 1500.0 : user.walletBalance || null,
-      kycStatus: user.role === "FARMER" ? "Pending" : null,
-      status: "Active",
-      joinedDate: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-      location: user.location || null,
-      herdSize: user.herdSize || null,
-      storeName: user.storeName || null,
-      storeDesc: user.storeDesc || null,
-      storePhone: user.storePhone || null,
-      storeAddress: user.storeAddress || null,
-      deliveryRadius: user.deliveryRadius || null,
-      dispatchTime: user.dispatchTime || null,
-      deliveryFee: user.deliveryFee || 0.0,
-      wishlist: user.wishlist || [],
-    }
-  });
-  return mapUser(newUser);
+  const id = crypto.randomUUID();
+  const joinedDate = new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  const walletBalance = user.role === "CUSTOMER" ? 1500.0 : user.walletBalance || null;
+  const kycStatus = user.role === "FARMER" ? "Pending" : null;
+
+  const res = await pool.query(
+    `INSERT INTO "User" (
+      "id", "name", "email", "passwordHash", "role", "walletBalance", "kycStatus",
+      "location", "joinedDate", "herdSize", "storeName", "storeDesc", "storePhone",
+      "storeAddress", "deliveryRadius", "dispatchTime", "deliveryFee", "status", "wishlist"
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19
+    ) RETURNING *`,
+    [
+      id,
+      user.name,
+      user.email,
+      user.passwordHash,
+      user.role || "CUSTOMER",
+      walletBalance,
+      kycStatus,
+      user.location || null,
+      joinedDate,
+      user.herdSize || null,
+      user.storeName || null,
+      user.storeDesc || null,
+      user.storePhone || null,
+      user.storeAddress || null,
+      user.deliveryRadius || null,
+      user.dispatchTime || null,
+      user.deliveryFee || 0.0,
+      "Active",
+      user.wishlist || [],
+    ]
+  );
+
+  return mapUser(res.rows[0]);
 }
 
 export async function updateUser(id: string, updates: Partial<User>): Promise<User> {
   await seedIfNeeded();
-  
-  const data: any = { ...updates };
-  if (updates.role) data.role = updates.role as any;
-  if (updates.status) data.status = updates.status as any;
-  if (updates.kycStatus) data.kycStatus = updates.kycStatus as any;
-  if (updates.kycDocumentExpiry) data.kycDocumentExpiry = new Date(updates.kycDocumentExpiry);
+  const existing = await getUserById(id);
+  if (!existing) throw new Error("User not found");
 
-  const updated = await prisma.user.update({
-    where: { id },
-    data
-  });
-  return mapUser(updated);
+  const fields: string[] = [];
+  const values: any[] = [];
+  let idx = 1;
+
+  const allowedFields = [
+    "name", "email", "passwordHash", "role", "walletBalance", "kycStatus",
+    "kycGovIdUrl", "kycFssaiUrl", "kycDocumentExpiry", "location", "joinedDate",
+    "herdSize", "storeName", "storeDesc", "storePhone", "storeAddress",
+    "deliveryRadius", "dispatchTime", "deliveryFee", "status", "wishlist"
+  ];
+
+  for (const key of allowedFields) {
+    if (key in updates) {
+      fields.push(`"${key}" = $${idx++}`);
+      let val = (updates as any)[key];
+      if (key === "kycDocumentExpiry" && val) val = new Date(val);
+      values.push(val);
+    }
+  }
+
+  if (fields.length === 0) return existing;
+
+  values.push(id);
+  const sql = `UPDATE "User" SET ${fields.join(", ")} WHERE "id" = $${idx} RETURNING *`;
+  const res = await pool.query(sql, values);
+  return mapUser(res.rows[0]);
 }
 
-// Product CRUD operations
+// =========================================================================
+// PRODUCT OPERATIONS
+// =========================================================================
+
 export async function getProducts(): Promise<Product[]> {
   await seedIfNeeded();
-  const list = await prisma.product.findMany();
-  return list.map(mapProduct);
+  const res = await pool.query('SELECT * FROM "Product" ORDER BY "name" ASC');
+  return res.rows.map(mapProduct);
 }
 
 export async function addProduct(product: Omit<Product, "id" | "status">): Promise<Product> {
   await seedIfNeeded();
-  const newProduct = await prisma.product.create({
-    data: {
-      name: product.name,
-      price: product.price,
-      unit: product.unit,
-      description: product.description,
-      image: product.image,
-      stock: product.stock,
-      category: product.category,
-      farmerId: product.farmerId,
-      status: "Active",
-      badge: product.badge || null,
-      rating: product.rating || 5.0,
-    }
-  });
-  return mapProduct(newProduct);
+  const id = crypto.randomUUID();
+  const res = await pool.query(
+    `INSERT INTO "Product" (
+      "id", "name", "price", "unit", "description", "image", "stock", "category",
+      "farmerId", "status", "badge", "rating"
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+    [
+      id,
+      product.name,
+      product.price,
+      product.unit,
+      product.description,
+      product.image,
+      product.stock,
+      product.category,
+      product.farmerId,
+      "Active",
+      product.badge || null,
+      product.rating || 5.0,
+    ]
+  );
+  return mapProduct(res.rows[0]);
 }
 
 export async function updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
   await seedIfNeeded();
-  const data: any = { ...updates };
-  if (updates.status) data.status = updates.status as any;
+  const fields: string[] = [];
+  const values: any[] = [];
+  let idx = 1;
 
-  const updated = await prisma.product.update({
-    where: { id },
-    data
-  });
-  return mapProduct(updated);
+  const allowedFields = ["name", "price", "unit", "description", "image", "stock", "category", "farmerId", "status", "badge", "rating"];
+  for (const key of allowedFields) {
+    if (key in updates) {
+      fields.push(`"${key}" = $${idx++}`);
+      values.push((updates as any)[key]);
+    }
+  }
+
+  if (fields.length === 0) {
+    const res = await pool.query('SELECT * FROM "Product" WHERE "id" = $1', [id]);
+    return mapProduct(res.rows[0]);
+  }
+
+  values.push(id);
+  const sql = `UPDATE "Product" SET ${fields.join(", ")} WHERE "id" = $${idx} RETURNING *`;
+  const res = await pool.query(sql, values);
+  return mapProduct(res.rows[0]);
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
   await seedIfNeeded();
-  try {
-    await prisma.product.delete({ where: { id } });
-    return true;
-  } catch {
-    return false;
-  }
+  const res = await pool.query('DELETE FROM "Product" WHERE "id" = $1', [id]);
+  return (res.rowCount ?? 0) > 0;
 }
 
-// Deliveries and Daily Drops CRUD
+// =========================================================================
+// DELIVERIES & DAILY DROPS OPERATIONS
+// =========================================================================
+
 export async function getDeliveries(): Promise<DeliveryItem[]> {
   await seedIfNeeded();
-  const list = await prisma.deliveryItem.findMany();
-  return list.map(mapDeliveryItem);
+  const res = await pool.query('SELECT * FROM "DeliveryItem" ORDER BY "date" ASC');
+  return res.rows.map(mapDeliveryItem);
 }
 
 export async function addDelivery(delivery: Omit<DeliveryItem, "id">): Promise<DeliveryItem> {
   await seedIfNeeded();
-  const newD = await prisma.deliveryItem.create({
-    data: {
-      id: "DLV-" + Math.floor(100 + Math.random() * 900),
-      customerId: delivery.customerId,
-      customerName: delivery.customerName,
-      address: delivery.address,
-      date: delivery.date,
-      product: delivery.product,
-      quantity: delivery.quantity,
-      price: delivery.price,
-      status: "Scheduled",
-      farmerId: delivery.farmerId,
-      skippedDates: delivery.skippedDates || [],
-    }
-  });
-  return mapDeliveryItem(newD);
+  const id = "DLV-" + Math.floor(100 + Math.random() * 900);
+  const res = await pool.query(
+    `INSERT INTO "DeliveryItem" (
+      "id", "customerId", "customerName", "address", "date", "product", "quantity",
+      "price", "status", "farmerId", "skippedDates", "temperatureLogs"
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+    [
+      id,
+      delivery.customerId,
+      delivery.customerName,
+      delivery.address,
+      delivery.date,
+      delivery.product,
+      delivery.quantity,
+      delivery.price,
+      delivery.status || "Scheduled",
+      delivery.farmerId,
+      delivery.skippedDates || [],
+      delivery.temperatureLogs || [],
+    ]
+  );
+  return mapDeliveryItem(res.rows[0]);
 }
 
 export async function updateDeliveryStatus(id: string, status: DeliveryItem["status"]): Promise<DeliveryItem> {
   await seedIfNeeded();
-  return await prisma.$transaction(async (tx) => {
-    const delivery = await tx.deliveryItem.findUnique({ where: { id } });
-    if (!delivery) throw new Error("Delivery drop not found");
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const getRes = await client.query('SELECT * FROM "DeliveryItem" WHERE "id" = $1 FOR UPDATE', [id]);
+    if (getRes.rows.length === 0) throw new Error("Delivery drop not found");
+    const delivery = getRes.rows[0];
     const oldStatus = delivery.status;
 
-    const updatedDelivery = await tx.deliveryItem.update({
-      where: { id },
-      data: { status: status as any }
-    });
+    const updateRes = await client.query(
+      'UPDATE "DeliveryItem" SET "status" = $1 WHERE "id" = $2 RETURNING *',
+      [status, id]
+    );
 
+    // If status changed to Skipped, auto-refund customer wallet balance
     if (status === "Skipped" && oldStatus !== "Skipped") {
-      const user = await tx.user.findUnique({ where: { id: delivery.customerId } });
-      if (user) {
-        const refundAmt = delivery.price;
-        const currentBal = user.walletBalance || 0.0;
-        await tx.user.update({
-          where: { id: delivery.customerId },
-          data: { walletBalance: currentBal + refundAmt }
-        });
+      const refundAmt = parseFloat(delivery.price);
+      await client.query(
+        'UPDATE "User" SET "walletBalance" = COALESCE("walletBalance", 0) + $1 WHERE "id" = $2',
+        [refundAmt, delivery.customerId]
+      );
 
-        await tx.transaction.create({
-          data: {
-            id: "TX-" + Math.floor(100 + Math.random() * 900),
-            userId: delivery.customerId,
-            amount: refundAmt,
-            type: "CREDIT",
-            description: `Auto-Refund: Skipped drop ${delivery.id}`,
-          }
-        });
-      }
+      const txId = "TX-" + Math.floor(100 + Math.random() * 900);
+      await client.query(
+        `INSERT INTO "Transaction" ("id", "userId", "amount", "type", "description", "createdAt")
+         VALUES ($1, $2, $3, 'CREDIT', $4, NOW())`,
+        [txId, delivery.customerId, refundAmt, `Auto-Refund: Skipped drop ${delivery.id}`]
+      );
     }
 
-    return mapDeliveryItem(updatedDelivery);
-  });
+    await client.query("COMMIT");
+    return mapDeliveryItem(updateRes.rows[0]);
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function pauseCustomerDeliveries(customerId: string, isPaused: boolean): Promise<void> {
   await seedIfNeeded();
-  await prisma.deliveryItem.updateMany({
-    where: {
-      customerId,
-      status: isPaused ? "Scheduled" : "Paused"
-    },
-    data: {
-      status: isPaused ? "Paused" : "Scheduled"
-    }
-  });
-}
-
-// Transactions
-export async function getTransactions(): Promise<Transaction[]> {
-  await seedIfNeeded();
-  const list = await prisma.transaction.findMany();
-  return list.map(mapTransaction);
-}
-
-export async function addTransaction(tx: Omit<Transaction, "id" | "createdAt">): Promise<Transaction> {
-  await seedIfNeeded();
-  const newTx = await prisma.transaction.create({
-    data: {
-      id: "TX-" + Math.floor(100 + Math.random() * 900),
-      userId: tx.userId,
-      amount: tx.amount,
-      type: tx.type as any,
-      description: tx.description,
-    }
-  });
-  return mapTransaction(newTx);
-}
-
-// Reviews
-export async function getReviews(): Promise<Review[]> {
-  await seedIfNeeded();
-  const list = await prisma.review.findMany();
-  return list.map(mapReview);
-}
-
-export async function addReview(review: Omit<Review, "id" | "status" | "date">): Promise<Review> {
-  await seedIfNeeded();
-  const newReview = await prisma.review.create({
-    data: {
-      id: "REV-" + Math.floor(100 + Math.random() * 900),
-      customerId: review.customerId,
-      customerName: review.customerName,
-      farmerId: review.farmerId,
-      farmerName: review.farmerName,
-      rating: review.rating,
-      text: review.text,
-      date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-      product: review.product,
-      status: "Approved",
-    }
-  });
-  return mapReview(newReview);
-}
-
-export async function updateReviewStatus(id: string, status: Review["status"]): Promise<Review> {
-  await seedIfNeeded();
-  const updated = await prisma.review.update({
-    where: { id },
-    data: { status: status as any }
-  });
-  return mapReview(updated);
-}
-
-// Platform settings
-export async function getPlatformSettings(): Promise<PlatformSettings> {
-  await seedIfNeeded();
-  let settings = await prisma.platformSettings.findFirst({ where: { id: 1 } });
-  if (!settings) {
-    settings = await prisma.platformSettings.create({
-      data: {
-        id: 1,
-        commissionRate: 10.0,
-        baseDeliveryFee: 15.0,
-        payoutCycle: "Weekly",
-        kycRequired: true,
-      }
-    });
-  }
-  return mapPlatformSettings(settings);
-}
-
-export async function updatePlatformSettings(updates: Partial<PlatformSettings>): Promise<PlatformSettings> {
-  await seedIfNeeded();
-  const updated = await prisma.platformSettings.update({
-    where: { id: 1 },
-    data: updates
-  });
-  return mapPlatformSettings(updated);
-}
-
-// Telemetry Location Tracking
-export async function getTrackingLocation(): Promise<TrackingLocation> {
-  await seedIfNeeded();
-  let tracking = await prisma.trackingLocation.findFirst({ where: { id: 1 } });
-  if (!tracking) {
-    tracking = await prisma.trackingLocation.create({
-      data: {
-        id: 1,
-        lat: 28.4595,
-        lng: 77.0266,
-      }
-    });
-  }
-  return mapTrackingLocation(tracking);
-}
-
-export async function updateTrackingLocation(lat: number, lng: number): Promise<TrackingLocation> {
-  await seedIfNeeded();
-  const updated = await prisma.trackingLocation.update({
-    where: { id: 1 },
-    data: {
-      lat,
-      lng,
-      lastUpdated: new Date()
-    }
-  });
-  return mapTrackingLocation(updated);
-}
-
-// Refresh token store
-export async function addRefreshToken(userId: string, token: string): Promise<void> {
-  await seedIfNeeded();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-  await prisma.refreshToken.create({
-    data: { token, userId, expiresAt }
-  });
-  await prisma.refreshToken.deleteMany({
-    where: { expiresAt: { lt: new Date() } }
-  });
-}
-
-export async function getRefreshToken(token: string): Promise<RefreshToken | null> {
-  await seedIfNeeded();
-  const found = await prisma.refreshToken.findUnique({ where: { token } });
-  if (!found) return null;
-  if (found.expiresAt < new Date()) {
-    await prisma.refreshToken.delete({ where: { token } });
-    return null;
-  }
-  return mapRefreshToken(found);
-}
-
-export async function deleteRefreshToken(token: string): Promise<void> {
-  await seedIfNeeded();
-  await prisma.refreshToken.deleteMany({ where: { token } });
+  const targetStatus = isPaused ? "Paused" : "Scheduled";
+  const currentStatus = isPaused ? "Scheduled" : "Paused";
+  await pool.query(
+    'UPDATE "DeliveryItem" SET "status" = $1 WHERE "customerId" = $2 AND "status" = $3',
+    [targetStatus, customerId, currentStatus]
+  );
 }
 
 export async function skipDeliveryDate(id: string, date: string): Promise<DeliveryItem> {
   await seedIfNeeded();
-  const delivery = await prisma.deliveryItem.findUnique({ where: { id } });
-  if (!delivery) throw new Error("Delivery drop not found");
-  const skipped = delivery.skippedDates || [];
-  if (!skipped.includes(date)) {
-    skipped.push(date);
-  }
-  const updated = await prisma.deliveryItem.update({
-    where: { id },
-    data: {
-      skippedDates: skipped,
-      status: "Skipped"
-    }
-  });
-  return mapDeliveryItem(updated);
+  const getRes = await pool.query('SELECT * FROM "DeliveryItem" WHERE "id" = $1', [id]);
+  if (getRes.rows.length === 0) throw new Error("Delivery drop not found");
+  const delivery = getRes.rows[0];
+  const skipped: string[] = Array.isArray(delivery.skippedDates) ? [...delivery.skippedDates] : [];
+  if (!skipped.includes(date)) skipped.push(date);
+
+  const res = await pool.query(
+    'UPDATE "DeliveryItem" SET "skippedDates" = $1, "status" = $2 WHERE "id" = $3 RETURNING *',
+    [skipped, "Skipped", id]
+  );
+  return mapDeliveryItem(res.rows[0]);
 }
 
-// Audit Logs CRUD Helpers
+export async function logDeliveryTemperature(id: string, temperature: number): Promise<DeliveryItem> {
+  await seedIfNeeded();
+  const getRes = await pool.query('SELECT * FROM "DeliveryItem" WHERE "id" = $1', [id]);
+  if (getRes.rows.length === 0) throw new Error("Delivery drop not found");
+  const delivery = getRes.rows[0];
+  const logs: number[] = Array.isArray(delivery.temperatureLogs) ? [...delivery.temperatureLogs] : [];
+  logs.push(temperature);
+
+  const res = await pool.query(
+    'UPDATE "DeliveryItem" SET "temperatureLogs" = $1 WHERE "id" = $2 RETURNING *',
+    [logs, id]
+  );
+  return mapDeliveryItem(res.rows[0]);
+}
+
+// =========================================================================
+// TRANSACTIONS
+// =========================================================================
+
+export async function getTransactions(): Promise<Transaction[]> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "Transaction" ORDER BY "createdAt" DESC');
+  return res.rows.map(mapTransaction);
+}
+
+export async function addTransaction(tx: Omit<Transaction, "id" | "createdAt">): Promise<Transaction> {
+  await seedIfNeeded();
+  const id = "TX-" + Math.floor(100 + Math.random() * 900);
+  const res = await pool.query(
+    `INSERT INTO "Transaction" ("id", "userId", "amount", "type", "description", "createdAt")
+     VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *`,
+    [id, tx.userId, tx.amount, tx.type, tx.description]
+  );
+  return mapTransaction(res.rows[0]);
+}
+
+// =========================================================================
+// REVIEWS
+// =========================================================================
+
+export async function getReviews(): Promise<Review[]> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "Review" ORDER BY "date" DESC');
+  return res.rows.map(mapReview);
+}
+
+export async function addReview(review: Omit<Review, "id" | "status" | "date">): Promise<Review> {
+  await seedIfNeeded();
+  const id = "REV-" + Math.floor(100 + Math.random() * 900);
+  const date = new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  const res = await pool.query(
+    `INSERT INTO "Review" (
+      "id", "customerId", "customerName", "farmerId", "farmerName", "rating",
+      "text", "date", "product", "status"
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+    [
+      id,
+      review.customerId,
+      review.customerName,
+      review.farmerId,
+      review.farmerName,
+      review.rating,
+      review.text,
+      date,
+      review.product,
+      "Approved",
+    ]
+  );
+  return mapReview(res.rows[0]);
+}
+
+export async function updateReviewStatus(id: string, status: Review["status"]): Promise<Review> {
+  await seedIfNeeded();
+  const res = await pool.query(
+    'UPDATE "Review" SET "status" = $1 WHERE "id" = $2 RETURNING *',
+    [status, id]
+  );
+  return mapReview(res.rows[0]);
+}
+
+// =========================================================================
+// PLATFORM SETTINGS
+// =========================================================================
+
+export async function getPlatformSettings(): Promise<PlatformSettings> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "PlatformSettings" WHERE "id" = 1');
+  if (res.rows.length === 0) {
+    const insertRes = await pool.query(
+      `INSERT INTO "PlatformSettings" ("id", "commissionRate", "baseDeliveryFee", "payoutCycle", "kycRequired")
+       VALUES (1, 10.0, 15.0, 'Weekly', true) RETURNING *`
+    );
+    return mapPlatformSettings(insertRes.rows[0]);
+  }
+  return mapPlatformSettings(res.rows[0]);
+}
+
+export async function updatePlatformSettings(updates: Partial<PlatformSettings>): Promise<PlatformSettings> {
+  await seedIfNeeded();
+  const fields: string[] = [];
+  const values: any[] = [];
+  let idx = 1;
+
+  const allowed = ["commissionRate", "baseDeliveryFee", "payoutCycle", "kycRequired"];
+  for (const key of allowed) {
+    if (key in updates) {
+      fields.push(`"${key}" = $${idx++}`);
+      values.push((updates as any)[key]);
+    }
+  }
+
+  if (fields.length === 0) return await getPlatformSettings();
+
+  const sql = `UPDATE "PlatformSettings" SET ${fields.join(", ")} WHERE "id" = 1 RETURNING *`;
+  const res = await pool.query(sql, values);
+  return mapPlatformSettings(res.rows[0]);
+}
+
+// =========================================================================
+// TELEMETRY LOCATION TRACKING
+// =========================================================================
+
+export async function getTrackingLocation(): Promise<TrackingLocation> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "TrackingLocation" WHERE "id" = 1');
+  if (res.rows.length === 0) {
+    const insertRes = await pool.query(
+      `INSERT INTO "TrackingLocation" ("id", "lat", "lng", "lastUpdated")
+       VALUES (1, 28.4595, 77.0266, NOW()) RETURNING *`
+    );
+    return mapTrackingLocation(insertRes.rows[0]);
+  }
+  return mapTrackingLocation(res.rows[0]);
+}
+
+export async function updateTrackingLocation(lat: number, lng: number): Promise<TrackingLocation> {
+  await seedIfNeeded();
+  const res = await pool.query(
+    'UPDATE "TrackingLocation" SET "lat" = $1, "lng" = $2, "lastUpdated" = NOW() WHERE "id" = 1 RETURNING *',
+    [lat, lng]
+  );
+  return mapTrackingLocation(res.rows[0]);
+}
+
+// =========================================================================
+// REFRESH TOKEN STORE
+// =========================================================================
+
+export async function addRefreshToken(userId: string, token: string): Promise<void> {
+  await seedIfNeeded();
+  const id = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+  await pool.query(
+    'INSERT INTO "RefreshToken" ("id", "token", "userId", "expiresAt") VALUES ($1, $2, $3, $4)',
+    [id, token, userId, expiresAt]
+  );
+  await pool.query('DELETE FROM "RefreshToken" WHERE "expiresAt" < NOW()');
+}
+
+export async function getRefreshToken(token: string): Promise<RefreshToken | null> {
+  await seedIfNeeded();
+  const res = await pool.query('SELECT * FROM "RefreshToken" WHERE "token" = $1', [token]);
+  if (res.rows.length === 0) return null;
+  const tokenDoc = res.rows[0];
+  if (new Date(tokenDoc.expiresAt) < new Date()) {
+    await pool.query('DELETE FROM "RefreshToken" WHERE "token" = $1', [token]);
+    return null;
+  }
+  return mapRefreshToken(tokenDoc);
+}
+
+export async function deleteRefreshToken(token: string): Promise<void> {
+  await seedIfNeeded();
+  await pool.query('DELETE FROM "RefreshToken" WHERE "token" = $1', [token]);
+}
+
+// =========================================================================
+// AUDIT LOGS
+// =========================================================================
+
 export async function addAuditLog(
   action: string,
   adminId: string,
@@ -926,34 +1073,17 @@ export async function addAuditLog(
   details: string
 ): Promise<AuditLog> {
   await seedIfNeeded();
-  const newLog = await prisma.auditLog.create({
-    data: {
-      action,
-      adminId,
-      adminName,
-      details,
-    }
-  });
-  return mapAuditLog(newLog);
+  const id = crypto.randomUUID();
+  const res = await pool.query(
+    `INSERT INTO "AuditLog" ("id", "action", "adminId", "adminName", "details", "timestamp")
+     VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *`,
+    [id, action, adminId, adminName, details]
+  );
+  return mapAuditLog(res.rows[0]);
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
   await seedIfNeeded();
-  const list = await prisma.auditLog.findMany();
-  return list.map(mapAuditLog);
-}
-
-export async function logDeliveryTemperature(id: string, temperature: number): Promise<DeliveryItem> {
-  await seedIfNeeded();
-  const delivery = await prisma.deliveryItem.findUnique({ where: { id } });
-  if (!delivery) throw new Error("Delivery drop not found");
-  const logs = delivery.temperatureLogs || [];
-  logs.push(temperature);
-  const updated = await prisma.deliveryItem.update({
-    where: { id },
-    data: {
-      temperatureLogs: logs
-    }
-  });
-  return mapDeliveryItem(updated);
+  const res = await pool.query('SELECT * FROM "AuditLog" ORDER BY "timestamp" DESC');
+  return res.rows.map(mapAuditLog);
 }

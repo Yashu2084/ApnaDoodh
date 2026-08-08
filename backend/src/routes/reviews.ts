@@ -8,7 +8,11 @@ const router = Router();
 const reviewRepo = new ReviewRepository();
 
 async function getUserIdFromSession(req: any): Promise<string | null> {
-  const token = req.cookies?.apnadoodh_token;
+  const authHeader = req.headers?.authorization;
+  let token = req.cookies?.apnadoodh_token;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  }
   if (!token) return null;
   const payload = await verifyJWT(token);
   return payload ? payload.id : null;

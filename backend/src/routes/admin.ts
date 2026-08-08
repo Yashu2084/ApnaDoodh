@@ -6,7 +6,9 @@ import {
   addAuditLog, 
   getPlatformSettings, 
   updatePlatformSettings, 
+  getProducts,
   updateProduct, 
+  getReviews,
   updateReviewStatus,
   getDeliveries,
   addTransaction,
@@ -73,9 +75,8 @@ router.get("/actions", async (req: any, res: any) => {
     const users = await getUsers();
     const customers = users.filter(u => u.role === "CUSTOMER");
     
-    const { getProducts: dbGetProducts, getReviews: dbGetReviews } = require("../lib/db");
-    const products = await dbGetProducts();
-    const reviews = await dbGetReviews();
+    const products = await getProducts();
+    const reviews = await getReviews();
 
     return res.json({
       success: true,

@@ -15,16 +15,16 @@ ApnaDoodh uses a modern decoupled architecture consisting of a static/UI fronten
                  │ HTTPS API Calls (apiFetch)
                  ▼
      Backend (Node.js + Express)
-  [ Deployed on Prisma Compute ]
+        [ Deployed on Render ]
                  │
-                 │ Prisma ORM Client
+                 │ Direct pg Pool (Parameterized SQL)
                  ▼
-  PostgreSQL Cloud Database
+      Cloud PostgreSQL Database
 ```
 
 * **Frontend**: Next.js 15 UI pages and middleware only. It contains no database dependencies and runs entirely as static/client-side application, calling the Express backend for all operations.
-* **Backend**: Express.js server exposing REST endpoints. It holds all business logic, ORM database connections, third-party integrations, and background task queues.
-* **Database**: Managed Cloud PostgreSQL synced using Prisma ORM.
+* **Backend**: Express.js server exposing REST endpoints. It holds all business logic, direct `pg.Pool` database connections, third-party integrations, and background task queues.
+* **Database**: Managed Cloud PostgreSQL queried via direct connection pool (`pg`).
 
 ---
 
@@ -32,7 +32,7 @@ ApnaDoodh uses a modern decoupled architecture consisting of a static/UI fronten
 
 * **Frontend Framework**: Next.js 15 (App Router, Client Components, Edge Middleware)
 * **Backend Framework**: Node.js + Express.js (TypeScript compiled)
-* **Database & ORM**: Prisma ORM with PostgreSQL database cloud schema
+* **Database Access**: Direct `pg.Pool` connection pool with parameterized SQL queries
 * **JWT Cryptography**: Edge-native Web Crypto APIs (Frontend) & native Node Crypto Hmac (Backend)
 * **Background Queue**: In-memory task worker queue (running in Express backend)
 * **Payments**: Stripe & Razorpay SDK integrations
@@ -77,13 +77,12 @@ ApnaDoodh uses a modern decoupled architecture consisting of a static/UI fronten
 │   │   ├── admin.ts            # Payout runs, KYC status, audit listings
 │   │   └── tracking.ts         # Telemetry location updates
 │   └── lib/                    # Shared Libraries
-│       ├── db.ts               # Prisma ORM instantiation and DB seeding
+│       ├── db.ts               # Direct PostgreSQL pool, schema bootstrap, and SQL queries
 │       ├── jwt.ts              # Node Crypto JWT signer/verifier
 │       ├── queue.ts            # Background roster generation task queue
 │       ├── security.ts         # Request rate-limiters and input sanitizers
-│       └── services.ts         # Integrations (Stripe, Razorpay, S3, Twilio)
+│       ├── services.ts         # Integrations (Stripe, Razorpay, S3, Twilio)
 │       └── repositories/       # Clean Repository Pattern layers
-├── prisma/                     # Prisma schema definition
 ├── package.json                # Backend dependency and run scripts
 └── tsconfig.json               # Backend TypeScript compiler configuration
 ```
@@ -97,7 +96,7 @@ ApnaDoodh uses a modern decoupled architecture consisting of a static/UI fronten
 sequenceDiagram
     participant Browser as Client Browser
     participant Vercel as Next.js Edge (Vercel)
-    participant Express as Express API (Prisma Compute)
+    participant Express as Express API (Render)
     participant DB as Cloud PostgreSQL
 
     Browser->>Vercel: Request /dashboard/customer
@@ -121,11 +120,11 @@ sequenceDiagram
 * **Subscription Top-Up**: User triggers a wallet credit. Express processes payment via Stripe/Razorpay (`lib/services.ts`), writes the transaction ledger to Postgres, and increments `walletBalance`.
 * **Escrow Debits**: Daily drops are scheduled and debited against the customer's wallet balance.
 * **Skip & Auto-Refund Escrow**: If a drop status is updated to `Skipped` (via PATCH `/api/deliveries/:id`):
-  1. The Express server initiates a database transaction (`prisma.$transaction` in `lib/db.ts`).
+  1. The Express server initiates a database transaction (`BEGIN` in `lib/db.ts`).
   2. The delivery item status is flagged as `Skipped`.
   3. The price of the delivery item is added back to the customer's `walletBalance`.
   4. A `CREDIT` transaction record is logged as "Auto-Refund: Skipped drop".
-  5. The transaction commits atomically, avoiding race conditions.
+  5. The transaction commits atomically (`COMMIT`), avoiding race conditions.
 
 ---
 

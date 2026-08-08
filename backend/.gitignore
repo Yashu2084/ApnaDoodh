@@ -1,1 +1,7 @@
-.prisma/
+node_modules/
+dist/
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

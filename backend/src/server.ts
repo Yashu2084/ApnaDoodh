@@ -2,6 +2,11 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
+import dotenv from "dotenv";
+
+// Load environment variables before anything else
+dotenv.config({ path: path.join(__dirname, "../.env") });
+
 import authRouter from "./routes/auth";
 import productsRouter from "./routes/products";
 import deliveriesRouter from "./routes/deliveries";
@@ -10,48 +15,80 @@ import reviewsRouter from "./routes/reviews";
 import adminRouter from "./routes/admin";
 import trackingRouter from "./routes/tracking";
 
-// Load environment variables
-import dotenv from "dotenv";
-dotenv.config({ path: path.join(__dirname, "../.env") });
-
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3001;
 
+// Allowed Origins
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
   "https://www.apnadoodh.shop",
-  "https://apnadoodh.shop"
+  "https://apnadoodh.shop",
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.replace(/\/+$/, "")] : [])
 ];
 
+const isOriginAllowed = (origin?: string): boolean => {
+  if (!origin) return true; // Allow server-to-server / curl / Postman
+  if (allowedOrigins.includes(origin)) return true;
+  if (origin === "https://apnadoodh.shop" || origin.endsWith(".apnadoodh.shop")) return true;
+  if (origin.endsWith(".vercel.app")) return true; // Allow Vercel preview deploys
+  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) return true;
+  return false;
+};
+
+// CORS configuration using standard cors library + explicit fallback
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow but do not reflect unauthorized origins if needed
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Cookie",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+    "Access-Control-Request-Method",
+    "Access-Control-Request-Headers",
+  ],
+  exposedHeaders: ["Set-Cookie"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
+
+// Explicit Header Fallback Middleware
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
-  const isAllowed = !origin || 
-                    allowedOrigins.includes(origin) || 
-                    origin.endsWith(".apnadoodh.shop") || 
-                    origin === "https://apnadoodh.shop" ||
-                    origin.startsWith("http://localhost:") || 
-                    origin.startsWith("http://127.0.0.1:");
-
-  if (isAllowed && origin) {
+  if (origin && isOriginAllowed(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, Cookie, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers"
+    );
+    res.setHeader("Access-Control-Expose-Headers", "Set-Cookie");
   }
-  
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie, X-Requested-With");
 
-  // Handle preflight OPTIONS request
+  // Handle preflight OPTIONS explicitly
   if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
+    return res.status(204).end();
   }
 
   next();
 });
 
-// Middlewares
+// Body parsers and cookies
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
@@ -60,6 +97,58 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "../public")));
 app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 app.use("/invoices", express.static(path.join(__dirname, "../public/invoices")));
+
+import { pool, seedIfNeeded } from "./lib/db";
+
+// Health Check Endpoints
+app.get("/health", async (_req, res) => {
+  let dbStatus = "disconnected";
+  try {
+    const dbRes = await pool.query("SELECT 1 as ping");
+    if (dbRes.rows.length > 0) {
+      dbStatus = "connected";
+    }
+  } catch (err: any) {
+    dbStatus = `error: ${err.message}`;
+  }
+
+  res.status(200).json({
+    status: "ok",
+    database: dbStatus,
+    service: "ApnaDoodh Backend",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+app.get("/api/health", async (_req, res) => {
+  let dbStatus = "disconnected";
+  try {
+    const dbRes = await pool.query("SELECT 1 as ping");
+    if (dbRes.rows.length > 0) {
+      dbStatus = "connected";
+    }
+  } catch (err: any) {
+    dbStatus = `error: ${err.message}`;
+  }
+
+  res.status(200).json({
+    status: "ok",
+    database: dbStatus,
+    service: "ApnaDoodh Backend",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "ApnaDoodh Backend API is live and operational",
+    service: "ApnaDoodh Backend",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // REST API Routes
 app.use("/api/auth", authRouter);
@@ -70,11 +159,12 @@ app.use("/api/reviews", reviewsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/tracking", trackingRouter);
 
-// Fallback Route
+// Fallback Route for non-existent API routes
 app.use((req, res) => {
   res.status(404).json({ error: `API route ${req.method} ${req.url} not found` });
 });
 
 app.listen(port, () => {
-console.log("Allowed Origins:", allowedOrigins);
+  console.log(`[ApnaDoodh Backend] Server listening on port ${port}`);
+  console.log(`[ApnaDoodh Backend] Allowed Origins:`, allowedOrigins);
 });

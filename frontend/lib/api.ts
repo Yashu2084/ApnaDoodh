@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://apnadoodh.onrender.com";
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://apnadoodh.onrender.com").replace(/\/+$/, "");
 
 // Helper to read client-side cookie if needed
 export function getCookie(name: string): string | null {
@@ -30,7 +30,9 @@ export function eraseCookie(name: string) {
  * to the external Express backend and handles session token headers.
  */
 export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
-  const url = path.startsWith("/api") ? `${API_URL}${path}` : path;
+  const url = path.startsWith("http://") || path.startsWith("https://")
+    ? path
+    : `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
   // Clone headers
   const headers = new Headers(options.headers || {});
@@ -54,9 +56,13 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   let response: Response;
   try {
     response = await fetch(url, mergedOptions);
-  } catch (err) {
+  } catch (err: any) {
     // Gracefully catch network failures (e.g. backend cold start or offline)
-    return new Response(JSON.stringify({ error: "Backend service temporarily unavailable", user: null }), {
+    console.error(`Network error reaching backend at ${url}:`, err);
+    return new Response(JSON.stringify({ 
+      error: "Backend service temporarily unavailable. Please verify the backend server is running and reachable.", 
+      user: null 
+    }), {
       status: 503,
       statusText: "Service Unavailable",
       headers: { "Content-Type": "application/json" },
@@ -66,7 +72,10 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   // Check if response returned an HTML page (e.g. 404 HTML or non-JSON response)
   const contentType = response.headers.get("content-type") || "";
   if (contentType.includes("text/html")) {
-    return new Response(JSON.stringify({ error: "Endpoint returned HTML instead of JSON", user: null }), {
+    return new Response(JSON.stringify({ 
+      error: "Backend returned an unexpected HTML response instead of JSON", 
+      user: null 
+    }), {
       status: response.status || 404,
       statusText: response.statusText || "Not Found",
       headers: { "Content-Type": "application/json" },

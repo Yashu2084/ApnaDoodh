@@ -56,7 +56,7 @@ router.post("/signup", async (req: any, res: any) => {
     res.cookie("apnadoodh_token", accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "strict",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 900 * 1000,
       path: "/",
     });
@@ -64,7 +64,7 @@ router.post("/signup", async (req: any, res: any) => {
     res.cookie("apnadoodh_refresh", refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "strict",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -126,7 +126,7 @@ router.post("/login", async (req: any, res: any) => {
     res.cookie("apnadoodh_token", accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "strict",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 900 * 1000,
       path: "/",
     });
@@ -134,7 +134,7 @@ router.post("/login", async (req: any, res: any) => {
     res.cookie("apnadoodh_refresh", refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "strict",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -183,10 +183,11 @@ router.post("/refresh", async (req: any, res: any) => {
 
     const newAccessToken = await signJWT(claim, 900); // 15 mins
 
+    const isProd = process.env.NODE_ENV === "production";
     res.cookie("apnadoodh_token", newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 900 * 1000,
       path: "/",
     });
@@ -352,7 +353,7 @@ router.post("/oauth", async (req: any, res: any) => {
     res.cookie("apnadoodh_token", accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "strict",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 900 * 1000,
       path: "/",
     });
@@ -360,7 +361,7 @@ router.post("/oauth", async (req: any, res: any) => {
     res.cookie("apnadoodh_refresh", refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: "strict",
+      sameSite: isProd ? "none" : "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: "/",
     });
