@@ -5,7 +5,20 @@ import crypto from "crypto";
 // POSTGRESQL CONNECTION POOL SETUP
 // =========================================================================
 
-const connectionString = process.env.DATABASE_URL;
+function getValidConnectionString(): string {
+  let raw = process.env.DATABASE_URL?.trim() || "";
+  if (!raw) {
+    return "postgresql://postgres:postgres@localhost:5432/apnadoodh";
+  }
+  if (raw.startsWith("prisma+postgres://")) {
+    raw = "postgresql://" + raw.slice("prisma+postgres://".length);
+  } else if (raw.startsWith("prisma://")) {
+    raw = "postgresql://" + raw.slice("prisma://".length);
+  }
+  return raw;
+}
+
+const connectionString = getValidConnectionString();
 
 // Determine if SSL is required (e.g. Render, Supabase, Neon, AWS RDS)
 const isSslRequired =
@@ -17,8 +30,7 @@ const isSslRequired =
   );
 
 export const pool = new Pool({
-  connectionString:
-    connectionString || "postgresql://postgres:postgres@localhost:5432/apnadoodh",
+  connectionString,
   ssl: isSslRequired ? { rejectUnauthorized: false } : undefined,
   max: 20,
   idleTimeoutMillis: 30000,

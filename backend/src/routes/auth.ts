@@ -151,7 +151,8 @@ router.post("/login", async (req: any, res: any) => {
       }
     });
   } catch (e: any) {
-    return res.status(500).json({ error: e.message || "Login failed" });
+    console.error("[Login Route Error]:", e?.message || e);
+    return res.status(500).json({ error: e.message || "Database connection error during login" });
   }
 });
 

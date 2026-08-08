@@ -103,18 +103,24 @@ import { pool, seedIfNeeded } from "./lib/db";
 // Health Check Endpoints
 app.get("/health", async (_req, res) => {
   let dbStatus = "disconnected";
+  let dbError: string | null = null;
+  const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+  
   try {
     const dbRes = await pool.query("SELECT 1 as ping");
     if (dbRes.rows.length > 0) {
       dbStatus = "connected";
     }
   } catch (err: any) {
-    dbStatus = `error: ${err.message}`;
+    dbStatus = "error";
+    dbError = err.message || err.code || String(err);
   }
 
   res.status(200).json({
     status: "ok",
     database: dbStatus,
+    hasDatabaseUrl,
+    dbError,
     service: "ApnaDoodh Backend",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
@@ -123,18 +129,24 @@ app.get("/health", async (_req, res) => {
 
 app.get("/api/health", async (_req, res) => {
   let dbStatus = "disconnected";
+  let dbError: string | null = null;
+  const hasDatabaseUrl = Boolean(process.env.DATABASE_URL);
+  
   try {
     const dbRes = await pool.query("SELECT 1 as ping");
     if (dbRes.rows.length > 0) {
       dbStatus = "connected";
     }
   } catch (err: any) {
-    dbStatus = `error: ${err.message}`;
+    dbStatus = "error";
+    dbError = err.message || err.code || String(err);
   }
 
   res.status(200).json({
     status: "ok",
     database: dbStatus,
+    hasDatabaseUrl,
+    dbError,
     service: "ApnaDoodh Backend",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
