@@ -5,33 +5,52 @@ import crypto from "crypto";
 // POSTGRESQL CONNECTION POOL SETUP
 // =========================================================================
 
-function getValidConnectionString(): string {
-  let raw = process.env.DATABASE_URL?.trim() || "";
-  if (!raw) {
-    return "postgresql://postgres:postgres@localhost:5432/apnadoodh";
+function getPoolConfig() {
+  const rawUrl = process.env.DATABASE_URL?.trim() || "";
+
+  if (!rawUrl) {
+    return {
+      connectionString: "postgresql://postgres:postgres@localhost:5432/apnadoodh",
+      ssl: false,
+    };
   }
-  if (raw.startsWith("prisma+postgres://")) {
-    raw = "postgresql://" + raw.slice("prisma+postgres://".length);
-  } else if (raw.startsWith("prisma://")) {
-    raw = "postgresql://" + raw.slice("prisma://".length);
+
+  // Check if connection is internal Render network or localhost
+  let isInternalRender = false;
+  const isLocal = rawUrl.includes("localhost") || rawUrl.includes("127.0.0.1");
+  const explicitlyDisabled = rawUrl.includes("sslmode=disable") || rawUrl.includes("ssl=false");
+  const explicitlyRequired = rawUrl.includes("sslmode=require") || rawUrl.includes("ssl=true");
+
+  try {
+    const parsed = new URL(rawUrl);
+    // Internal Render hostnames look like 'dpg-xxxxxxxx-a' (no dots in hostname)
+    if (parsed.hostname.startsWith("dpg-") && !parsed.hostname.includes(".")) {
+      isInternalRender = true;
+    }
+  } catch {}
+
+  let sslConfig: boolean | { rejectUnauthorized: boolean } = false;
+
+  if (explicitlyDisabled || isLocal) {
+    sslConfig = false;
+  } else if (explicitlyRequired || !isInternalRender) {
+    sslConfig = { rejectUnauthorized: false };
+  } else {
+    // Render internal private network connection without SSL
+    sslConfig = false;
   }
-  return raw;
+
+  return {
+    connectionString: rawUrl,
+    ssl: sslConfig,
+  };
 }
 
-const connectionString = getValidConnectionString();
-
-// Determine if SSL is required (e.g. Render, Supabase, Neon, AWS RDS)
-const isSslRequired =
-  process.env.NODE_ENV === "production" ||
-  Boolean(
-    connectionString &&
-      !connectionString.includes("localhost") &&
-      !connectionString.includes("127.0.0.1")
-  );
+const poolConfig = getPoolConfig();
 
 export const pool = new Pool({
-  connectionString,
-  ssl: isSslRequired ? { rejectUnauthorized: false } : undefined,
+  connectionString: poolConfig.connectionString,
+  ssl: poolConfig.ssl,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
