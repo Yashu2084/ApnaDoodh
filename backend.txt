@@ -1,0 +1,423 @@
+Here is the complete, exhaustive 14-part backend software architecture analysis and implementation plan for your project. This report has been compiled after examining every page, component, middleware, and route in the codebase.
+
+---
+
+# ApnaDoodh - Full-Stack Backend Architectural Analysis & Design
+
+---
+
+## # PART 1: Website Overview
+
+### 1. What the Website Does
+**ApnaDoodh** is a hyper-local, direct-to-source dairy marketplace platform designed to connect consumers directly with pasture-based dairy farmers. 
+- It eliminates standard commercial dairy intermediaries, allowing customers to view specific farm stories, cow breeds, and daily purity testing records before placing orders.
+- Customers can buy products instantly or establish automated daily subscription cycles.
+- It operates with a prepaid digital wallet system, enabling automatic morning debits for deliveries made before 7:00 AM using ApnaDoodh's insulated cold-chain logistics.
+
+### 2. Page Directory Map & Router Analysis
+- **Home Page (`app/page.tsx`)**: Renders promotional sections, nearby farmers list, products carousels, customer reviews, and interactive FAQs.
+- **Products Catalog (`app/products/page.tsx` & `app/products/[id]/page.tsx`)**: Lists available goods (A2 milk, ghee, paneer, curd, butter) with pagination, category filters, and detailed product-specific pages.
+- **Farmers List (`app/farmers/page.tsx` & `app/farmers/nearby/page.tsx`)**: Allows geo-distance based browsing of dairy farms.
+- **Farmer Storefront (`app/farmer/store/page.tsx`)**: Public profiles of farmers highlighting herd details, location coordinates, ratings, and listed inventory.
+- **Farmer Registration (`app/farmer/register/page.tsx`)**: Onboarding portal capturing KYC info, FSSAI registration numbers, and farm coordinates.
+- **Login & Register (`app/login/page.tsx` & `app/signup/page.tsx`)**: Credentials intake screen for user profiles.
+- **Live Order Tracking (`app/order-tracking/page.tsx`)**: Real-time delivery progress mapper.
+- **Customer Dashboard (`app/dashboard/customer/page.tsx`)**: Core dashboard managing orders, skipped/paused deliveries, wishlist items, wallet balance top-ups, written reviews, and profile settings.
+- **Farmer Dashboard (`app/dashboard/farmer/page.tsx`)**: CRUD panels for product catalog, pending/completed orders tracker, customer reviews list, earnings charts, and farm settings.
+- **Admin Dashboard (`app/dashboard/admin/page.tsx`)**: System control center for KYC audits, user blocking, listing flags, review moderations, and platform variables (fees, commission rates).
+
+### 3. User Flows
+- **Onboarding Flow**: Guest registers as Customer or Farmer $\rightarrow$ System verifies credentials $\rightarrow$ Redirects to role-specific dashboard.
+- **Prepaid Ordering Flow**: Customer tops up digital wallet via payment gateway $\rightarrow$ Adds products to cart $\rightarrow$ Checks out $\rightarrow$ Wallet is debited $\rightarrow$ Subscribed deliveries are scheduled.
+- **Delivery Management Flow**: Customer views upcoming calendar $\rightarrow$ Selectively pauses or skips specific dates $\rightarrow$ Courier updates dispatch status.
+- **Farmer Store Management Flow**: Farmer uploads product detail photos $\rightarrow$ Sets stock level $\rightarrow$ Adjusts unit pricing $\rightarrow$ Fulfills orders.
+
+### 4. Business Flows
+- **Farmer KYC Audits**: Farmer registers with documents $\rightarrow$ Admin verifies $\rightarrow$ Store activated.
+- **Earnings & Commission Splits**: Customer pays $\rightarrow$ System holds in escrow $\rightarrow$ Auto-debucts platform commission fee (e.g. 10%) $\rightarrow$ Settle remaining balance to Farmer's payouts ledger on weekly cycles.
+
+---
+
+## # PART 2: Backend Requirements
+
+| Feature | Purpose | Needs Backend? | Priority | Complexity | Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Authentication & RBAC** | Identity confirmation and route protection | **Yes** | Critical | Medium | Protects dashboards from cross-role access and coordinates session cookie states. |
+| **Prepaid Wallet & Transactions**| Ledger calculations for top-ups & order debits | **Yes** | Critical | High | Prevents double-spending, manages balances, and tracks billing items. |
+| **Subscription Scheduler** | Generating daily delivery drop sheets | **Yes** | Critical | High | Triggers automated runs every night to generate the morning's logistics maps. |
+| **Farmer KYC Verifications** | Compliance checks for onboarding | **Yes** | High | Medium | Secures document uploads and tracks Admin approval logs. |
+| **Product Inventory CRUD** | Farmer product catalog control | **Yes** | High | Low | Synchronizes active stock, pricing, and description updates. |
+| **Moderation Engine** | Flagging products, reviews, and users | **Yes** | High | Medium | Provides the Admin with control to block bad actors or hide unverified items. |
+| **Interactive Map Tracking** | GPS coordinate telemetry sharing | **Yes** | Low | High | Tracks courier routes and pushes real-time status updates to clients. |
+| **In-App & Email Alerts** | Account activity and order receipt alerts | **Yes** | Medium | Medium | Sends verification OTPs, invoices, and delivery notifications. |
+
+---
+
+## # PART 3: Authentication
+
+Role-based access control (RBAC) is enforced at the Next.js router middleware level via an HttpOnly JWT cookie called `apnadoodh_token`.
+
+### Authentication Checklist & Requirements
+1. **User Sign Up / Registration**: Password encryption via BCrypt (10 rounds). Checks for duplicate emails.
+2. **User Login**: issues signed JWT token containing claims: `id`, `name`, `email`, and `role` (`CUSTOMER` \| `FARMER` \| `SUPER_ADMIN`).
+3. **Session Verification**: Secure middleware routes requests to correct portals depending on decoded JWT payload.
+4. **Token Security**: Cookies configured with options:
+   - `httpOnly: true` (protects against XSS token lifting)
+   - `secure: true` (in production, enforces HTTPS)
+   - `sameSite: "strict"` (blocks CSRF attacks)
+5. **Upgraded Features for Production**:
+   - **Access/Refresh Token Rotation**: Short access token lifespan (15 mins) with database-backed rotating refresh tokens.
+   - **Twilio SMS OTP Login**: Multi-factor verification for security on farmer bank payouts.
+   - **Social Sign-In Integration**: OAuth 2.0 logins via Google and Apple.
+
+---
+
+## # PART 4: Database Design (PostgreSQL Relational Schema)
+
+### 1. `User` Entity
+*Represents all authentication records.*
+- **Fields**:
+  - `id` (UUID, Primary Key)
+  - `name` (VARCHAR, length: 3 to 60)
+  - `email` (VARCHAR, unique)
+  - `passwordHash` (VARCHAR)
+  - `role` (ENUM: `CUSTOMER`, `FARMER`, `SUPER_ADMIN`)
+  - `status` (ENUM: `ACTIVE`, `BLOCKED`, default: `ACTIVE`)
+  - `createdAt` (TIMESTAMP, default: now)
+- **Relationships**:
+  - 1-to-1 with `CustomerProfile`, `FarmerProfile`, `Wallet`.
+- **Indexes**:
+  - Unique Index on `email`.
+
+### 2. `CustomerProfile` Entity
+*Represents user data for buyers.*
+- **Fields**:
+  - `id` (UUID, Primary Key)
+  - `userId` (UUID, Foreign Key referencing `User.id`, cascade delete)
+  - `phone` (VARCHAR, regex: `^[6-9]\d{9}$`)
+  - `address` (TEXT)
+  - `latitude` (DECIMAL, scale: 9, precision: 6)
+  - `longitude` (DECIMAL, scale: 9, precision: 6)
+- **Relationships**:
+  - 1-to-many with `Order`, `DeliverySubscription`, `Review`.
+- **Indexes**:
+  - Index on `userId`.
+
+### 3. `FarmerProfile` Entity
+*Represents vendor data for farmers.*
+- **Fields**:
+  - `id` (UUID, Primary Key)
+  - `userId` (UUID, Foreign Key referencing `User.id`, cascade delete)
+  - `storeName` (VARCHAR, unique, length: 3 to 100)
+  - `storeDescription` (TEXT)
+  - `phone` (VARCHAR)
+  - `address` (TEXT)
+  - `latitude` (DECIMAL)
+  - `longitude` (DECIMAL)
+  - `deliveryRadiusKm` (DECIMAL, default: 5.0)
+  - `dispatchTime` (VARCHAR, default: "5:00 AM")
+  - `herdDetails` (TEXT, e.g., "30 Gir Cows")
+  - `kycStatus` (ENUM: `PENDING`, `VERIFIED`, `SUSPENDED`, default: `PENDING`)
+  - `fssaiNumber` (VARCHAR, length: 14)
+  - `kycDocumentUrl` (VARCHAR)
+- **Relationships**:
+  - 1-to-many with `Product`, `Review`.
+- **Indexes**:
+  - Index on `userId`.
+  - Index on `kycStatus`.
+
+### 4. `Product` Entity
+*Represents listed inventory.*
+- **Fields**:
+  - `id` (UUID, Primary Key)
+  - `farmerProfileId` (UUID, Foreign Key referencing `FarmerProfile.id`)
+  - `name` (VARCHAR)
+  - `price` (DECIMAL, check: `price > 0`)
+  - `unit` (VARCHAR, e.g., "1 Litre")
+  - `description` (TEXT)
+  - `imageUrl` (VARCHAR)
+  - `stock` (INTEGER, check: `stock >= 0`)
+  - `category` (ENUM: `MILK`, `PANEER`, `CURD`, `GHEE`, `BUTTER`)
+  - `status` (ENUM: `ACTIVE`, `FLAGGED`, default: `ACTIVE`)
+  - `createdAt` (TIMESTAMP)
+- **Relationships**:
+  - Many-to-1 with `FarmerProfile`.
+- **Indexes**:
+  - Index on `farmerProfileId`.
+  - Index on `category`.
+  - Index on `status`.
+
+### 5. `Order` & `OrderItem` Entities
+*Track purchases and checkouts.*
+- **`Order` Fields**:
+  - `id` (UUID, Primary Key)
+  - `customerProfileId` (UUID, Foreign Key referencing `CustomerProfile.id`)
+  - `totalAmount` (DECIMAL)
+  - `deliveryAddress` (TEXT)
+  - `status` (ENUM: `PENDING`, `COMPLETED`, `CANCELLED`)
+  - `createdAt` (TIMESTAMP)
+- **`OrderItem` Fields**:
+  - `id` (UUID, Primary Key)
+  - `orderId` (UUID, Foreign Key referencing `Order.id`)
+  - `productId` (UUID, Foreign Key referencing `Product.id`)
+  - `quantity` (INTEGER, min: 1)
+  - `priceAtPurchase` (DECIMAL)
+
+### 6. `DeliverySubscription` Entity
+*Tracks subscription cycles.*
+- **Fields**:
+  - `id` (UUID, Primary Key)
+  - `customerProfileId` (UUID, Foreign Key referencing `CustomerProfile.id`)
+  - `productId` (UUID, Foreign Key referencing `Product.id`)
+  - `quantity` (INTEGER, default: 1)
+  - `skippedDates` (DATE[], array of skipped delivery dates)
+  - `status` (ENUM: `ACTIVE`, `PAUSED`, default: `ACTIVE`)
+  - `createdAt` (TIMESTAMP)
+
+### 7. `Wallet` & `WalletTransaction` Entities
+*Manages prepaid credits.*
+- **`Wallet` Fields**:
+  - `id` (UUID, Primary Key)
+  - `userId` (UUID, Foreign Key referencing `User.id`, unique)
+  - `balance` (DECIMAL, check: `balance >= 0`, default: 0.0)
+- **`WalletTransaction` Fields**:
+  - `id` (UUID, Primary Key)
+  - `walletId` (UUID, Foreign Key referencing `Wallet.id`)
+  - `amount` (DECIMAL, positive for credit, negative for debit)
+  - `type` (ENUM: `TOPUP`, `ORDER_DEBIT`, `REFUND`, `DISPATCH_PAYOUT`)
+  - `description` (VARCHAR)
+  - `createdAt` (TIMESTAMP)
+
+### 8. `Review` Entity
+*Tracks user feedback.*
+- **Fields**:
+  - `id` (UUID, Primary Key)
+  - `customerProfileId` (UUID, Foreign Key referencing `CustomerProfile.id`)
+  - `farmerProfileId` (UUID, Foreign Key referencing `FarmerProfile.id`)
+  - `rating` (INTEGER, range: 1 to 5)
+  - `text` (TEXT)
+  - `status` (ENUM: `APPROVED`, `FLAGGED`, `REMOVED`, default: `APPROVED`)
+  - `createdAt` (TIMESTAMP)
+
+---
+
+## # PART 5: API Design
+
+### 1. Authentication APIs
+- **POST `/api/auth/signup`**:
+  - Body: `{ "name", "email", "password", "role" }`
+  - Validations: Valid email, password length $\geq$ 8 characters, role is either `CUSTOMER` or `FARMER`.
+- **POST `/api/auth/login`**:
+  - Body: `{ "email", "password" }`
+  - Response: Set HttpOnly cookie, returns `{ "user": { "id", "name", "email", "role" } }`.
+- **GET `/api/auth/me`**:
+  - Response: Decoded user info or `{ "user": null }`.
+- **POST `/api/auth/logout`**:
+  - Response: Clears cookie payload.
+
+### 2. Customer Dashboard APIs
+- **GET `/api/customer/deliveries`**:
+  - Auth: Required (`CUSTOMER` role check)
+  - Response: List of scheduled deliveries and historical deliveries.
+- **POST `/api/customer/deliveries/:id/skip`**:
+  - Auth: Required (`CUSTOMER` role check)
+  - Body: `{ "date": "YYYY-MM-DD" }`
+  - Purpose: Appends the selected date to the subscription's `skippedDates` array.
+- **POST `/api/customer/deliveries/pause`**:
+  - Auth: Required (`CUSTOMER` role check)
+  - Body: `{ "pause": true | false }`
+- **POST `/api/customer/wallet/topup`**:
+  - Auth: Required (`CUSTOMER` role check)
+  - Body: `{ "amount": number, "paymentMethodId": string }`
+  - Purpose: Process card charge and increments `Wallet.balance`.
+
+### 3. Farmer Dashboard APIs
+- **GET `/api/farmer/products`**:
+  - Auth: Required (`FARMER` role check)
+  - Response: Lists listed products.
+- **POST `/api/farmer/products`**:
+  - Auth: Required (`FARMER` role check)
+  - Body: `{ "name", "price", "unit", "description", "image", "stock", "category" }`
+- **PUT `/api/farmer/products/:id`**:
+  - Auth: Required (`FARMER` role check)
+  - Body: `{ "name", "price", "unit", "description", "stock", "category" }`
+- **DELETE `/api/farmer/products/:id`**:
+  - Auth: Required (`FARMER` role check)
+
+### 4. Admin Moderation APIs
+- **GET `/api/admin/farmers`**:
+  - Auth: Required (`SUPER_ADMIN` role check)
+- **PUT `/api/admin/farmers/:id/kyc`**:
+  - Auth: Required (`SUPER_ADMIN` role check)
+  - Body: `{ "kycStatus": "Verified" | "Suspended" }`
+- **PUT `/api/admin/products/:id/flag`**:
+  - Auth: Required (`SUPER_ADMIN` role check)
+  - Body: `{ "status": "Flagged" | "Active" }`
+- **PUT `/api/admin/reviews/:id`**:
+  - Auth: Required (`SUPER_ADMIN` role check)
+  - Body: `{ "status": "Approved" | "Flagged" | "Removed" }`
+
+---
+
+## # PART 6: Admin Panel
+
+The Admin portal must manage all platform data and configurations:
+1. **Farmer KYC Verification Board**: Visual PDF viewer showing FSSAI certificates and government IDs, with approve/reject buttons.
+2. **User List & Actions**: Complete directory of registered users with search, filter by role, and a one-click block/unblock button.
+3. **Reported Content Moderator**: Moderates reviews flagged by users, with options to approve or delete.
+4. **Global Platform Settings**: Configures the platform commission rate (e.g. 10%), base delivery fees, and toggle controls to enforce/bypass farmer KYC requirements.
+
+---
+
+## # PART 7: Storage Requirements
+
+All media and documents must be stored in secure cloud object stores:
+1. **Product Images & Profile Pictures**: Stored in **Cloudinary** or **AWS S3** bucket. Images should be automatically resized and converted to web-optimized formats (WebP/AVIF).
+2. **Farmer KYC Documents (Government ID/Licenses)**: Stored in a private **AWS S3** bucket. Direct access is blocked. Files are retrieved only by authorized admin sessions via secure pre-signed URLs with a 5-minute expiry.
+3. **Invoices**: PDF receipt files generated during top-ups are stored in S3 and served directly to customers.
+
+---
+
+## # PART 8: Third-Party Integrations
+
+1. **Payment Processing**: **Razorpay** (primarily for UPI, NetBanking, and credit cards in India) or **Stripe**.
+2. **SMS Gateway**: **Twilio** or **Msg91** for sending verification OTPs, login codes, and daily delivery dispatch alerts.
+3. **Email Delivery**: **SendGrid** or **Resend** for sending purchase invoices and account registration welcome sequences.
+4. **Mapping and Routing**: **Google Maps API** for geolocation input, address verification, and delivery coordinate mapping.
+5. **Social Login**: Google OAuth for quick sign-up and login.
+
+---
+
+## # PART 9: Security
+
+1. **Password Hashing**: Stored passwords are encrypted using **Argon2id** or **BCrypt** with a work factor of 10.
+2. **XSS & Data Protection**: JWT session tokens are stored in cookies with attributes: `HttpOnly`, `Secure`, `SameSite=Strict`.
+3. **API Integrity Protection**:
+   - **CORS Policies**: Restricted strictly to the frontend domain name.
+   - **Rate Limiting**: Restricts sensitive endpoints (`/api/auth/login`, `/api/customer/wallet/topup`) to a maximum of 5 requests per minute per IP.
+4. **Data Sanitization**: Prevents SQL injection and XSS by sanitizing all incoming request inputs.
+5. **Enforced Middleware Protection**: Enforces JWT verification checks before allowing requests to proceed to dashboard routes.
+
+---
+
+## # PART 10: Performance
+
+1. **Database Connection Optimization**: Uses connection pooling via **PgBouncer** to scale connections and reduce setup overhead.
+2. **Data Caching**: Uses **Redis** to cache database records like category details, product lists, and active farmer stores.
+3. **Dynamic Pagination**: Implements limit-offset pagination on `/products` and `/reviews` queries to keep payload sizes small.
+4. **Media CDN**: Delivers catalog images via a CDN (e.g., Cloudflare) to ensure fast load times.
+5. **Background Task Queue**: Uses **BullMQ** or **Celery** to run heavy processes, such as generating the daily delivery roster, in the background.
+
+---
+
+## # PART 11: Architecture
+
+### 1. Technology Stack
+- **Framework**: Node.js with **NestJS** (TypeScript). Offers structured modules, dependency injection, and built-in guards.
+- **Database**: **PostgreSQL** for data integrity and ACID transaction safety.
+- **ORM**: **Prisma** for migrations and type-safe schema queries.
+- **Design Pattern**: **Repository Pattern with Clean Architecture** to decouple controllers from database models.
+
+### 2. Proposed Directory Map
+```
+src/
+├── config/              # Environment configs
+├── common/
+│   ├── guards/          # JwtAuthGuard, RolesGuard
+│   ├── middleware/      # RateLimiter, RequestLogger
+│   └── interceptors/    # SerializeInterceptor
+├── modules/
+│   ├── auth/            # Controllers, Services, Entities
+│   ├── product/
+│   ├── subscription/
+│   ├── wallet/
+│   └── review/
+└── main.ts              # Entrypoint
+```
+
+---
+
+## # PART 12: Implementation Roadmap
+
+```
+Phase 1: DB Schema & Auth Guard (2 Weeks)
+  - Configure PostgreSQL, run initial database migrations.
+  - Build signup/login routes, password hashing, and role verification guards.
+
+Phase 2: Farmer Profile & Product Catalog CRUD (2 Weeks)
+  - Build product listing routes, category filters, and file upload handlers.
+  - Implement search queries for local farm listings.
+
+Phase 3: Order Escrow & Subscription Engines (3 Weeks)
+  - Implement checkout transaction processes.
+  - Create the subscription schedule generator and subscription controls.
+
+Phase 4: Payment Gateways & Live Runner Telemetry (2.5 Weeks)
+  - Integrate Razorpay webhook processing.
+  - Add GPS coordinate streaming for live delivery tracking.
+
+Phase 5: Admin Panel APIs & Security Audits (2 Weeks)
+  - Create KYC document approval flows and platform config interfaces.
+  - Conduct code audits, run security checks, and deploy to staging.
+```
+
+---
+
+## # PART 13: Missing Features (Expected in Production)
+
+1. **Dynamic Logistics Routing**: Backend route optimization for delivery runners using algorithms like Dijkstra's or TSP (Traveling Salesperson Problem).
+2. **Cold-Chain Temperature Logs**: Allows drivers to log the cooling compartment temperature at drop-off to verify freshness.
+3. **Automated Weekly Payouts**: Integrates with bank APIs (like RazorpayX) to automatically settle payments with farmers every week.
+4. **Refund Escrow Manager**: Automates wallet refunds if a delivery is marked "Skipped" or "Failed" by the logistics runner.
+5. **Audit Logs**: Secure logs to track Admin actions, such as who approved a specific farmer's FSSAI license.
+
+---
+
+## # PART 14: Final Checklist
+
+### 1. Database & Initial Configuration
+- [ ] Spin up PostgreSQL database
+- [ ] Initialize Prisma and run database migrations
+- [ ] Setup Redis cache server
+- [ ] Configure environment variables (`DATABASE_URL`, `JWT_SECRET`, `REDIS_URL`)
+
+### 2. Security & Core Auth
+- [ ] Setup password hashing (Argon2 / BCrypt)
+- [ ] Create JWT signing and verification middleware
+- [ ] Set up CORS policies and secure HTTP headers using Helmet
+- [ ] Set up request rate limiting on auth routes
+- [ ] Implement JWT role checks for `CUSTOMER`, `FARMER`, and `SUPER_ADMIN`
+
+### 3. Product Catalog
+- [ ] Build product creation, retrieval, update, and deletion APIs
+- [ ] Connect S3/Cloudinary upload handlers for product images
+- [ ] Implement search filters for categories and stores
+- [ ] Create product flag and hide controls for Admin moderation
+
+### 4. Orders & Subscriptions
+- [ ] Build transactional checkout routes
+- [ ] Implement the daily subscription runner sheet generator
+- [ ] Build APIs to skip deliveries and pause subscriptions
+- [ ] Implement order cancellation routes
+
+### 5. Financial Systems
+- [ ] Setup transaction tables for the prepaid wallet
+- [ ] Integrate Razorpay / Stripe payment gateway webhooks
+- [ ] Build payout calculations for farmers
+- [ ] Implement automated wallet refunds for skipped deliveries
+
+### 6. Admin Panel
+- [ ] Build KYC document approval queues
+- [ ] Implement customer account block/unblock controls
+- [ ] Create review flag and removal endpoints
+- [ ] Build systems settings controllers (for delivery fees and commission rates)
+
+### 7. Deployment & Operations
+- [ ] Configure CI/CD pipelines (GitHub Actions)
+- [ ] Setup Winston/Pino logging tools
+- [ ] Configure APM monitoring (Datadog / NewRelic)
+- [ ] Deploy to staging environment (e.g., Render/AWS)
+
+---
+
+*This plan has been fully updated in the conversation directory [implementation_plan.md](file:///C:/Users/MOL/.gemini/antigravity/brain/6a3c961a-1cdc-42c3-9f01-6e99d677cfb4/implementation_plan.md) and is ready for your review.*
