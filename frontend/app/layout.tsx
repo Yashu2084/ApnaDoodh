@@ -9,6 +9,7 @@ import LocationProvider from "@/components/LocationProvider";
 import LocationModal from "@/components/LocationModal";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 import FloatingLocationWidget from "@/components/FloatingLocationWidget";
+import AIDairyAssistant from "@/components/AIDairyAssistant";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -44,6 +45,7 @@ export default function RootLayout({
               
               {/* Floating Widgets */}
               <FloatingLocationWidget />
+              <AIDairyAssistant />
               <WhatsAppWidget />
             </div>
           </CartProvider>

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Keep file tracing inside this app; the parent directory contains another lockfile.
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       {

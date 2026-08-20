@@ -14,6 +14,7 @@ import walletRouter from "./routes/wallet";
 import reviewsRouter from "./routes/reviews";
 import adminRouter from "./routes/admin";
 import trackingRouter from "./routes/tracking";
+import aiRouter from "./routes/ai";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -170,6 +171,7 @@ app.use("/api/wallet", walletRouter);
 app.use("/api/reviews", reviewsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/tracking", trackingRouter);
+app.use("/api/ai", aiRouter);
 
 // Fallback Route for non-existent API routes
 app.use((req, res) => {
