@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <LocationProvider>
           <CartProvider>
             <div className="flex flex-col min-h-screen bg-white text-slate-950 overflow-x-hidden w-full relative">

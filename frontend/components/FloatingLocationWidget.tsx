@@ -26,6 +26,7 @@ export default function FloatingLocationWidget() {
         </p>
         <button
           onClick={openLocationModal}
+          suppressHydrationWarning
           className="mt-1 flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-500 transition cursor-pointer"
         >
           Change Location
