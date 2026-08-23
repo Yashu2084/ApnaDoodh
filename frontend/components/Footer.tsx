@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import Brand from "@/components/Brand";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -109,7 +108,13 @@ export default function Footer() {
           
           {/* Brand Info */}
           <div className="space-y-6">
-            <Brand width={120} height={95} />
+            <div className="inline-block rounded-2xl bg-white/95 p-3.5 shadow-xl border border-white/20 backdrop-blur-md">
+              <img 
+                src="/assets/logo/apnadoodh-footer-logo.png" 
+                alt="ApnaDoodh" 
+                className="h-auto w-auto max-w-[130px] object-contain"
+              />
+            </div>
             <p className="text-sm leading-7 text-white/80">
               ApnaDoodh is Gurugram's largest direct dairy marketplace. Browse verified local farmers near you, compare raw testing logs, and purchase dairy directly from the source.
             </p>
