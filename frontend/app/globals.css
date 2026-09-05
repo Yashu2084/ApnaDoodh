@@ -74,12 +74,12 @@ img {
 
 /* Botpress Webchat Overrides */
 #bp-web-widget, #bp-web-widget-container, .bp-widget-widget {
-  bottom: calc(1.5rem + 3.5rem + 1rem) !important; /* Above WhatsApp */
+  bottom: 96px !important; /* 24px + 56px (WhatsApp) + 16px (gap) */
   z-index: 60 !important;
 }
 
 @media (max-width: 640px) {
   #bp-web-widget, #bp-web-widget-container, .bp-widget-widget {
-    bottom: calc(1.5rem + 3.5rem + 0.75rem) !important;
+    bottom: 92px !important; /* 12px gap on mobile */
   }
 }

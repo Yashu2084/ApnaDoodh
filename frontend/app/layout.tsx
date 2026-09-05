@@ -79,9 +79,9 @@ export default function RootLayout({
                             floatingActionButton: {
                               backgroundColor: "#ffffff",
                               border: "1px solid #e2e8f0",
-                              boxShadow: "0 12px 36px rgba(0,0,0,0.15)",
-                              width: "56px",
-                              height: "56px"
+                              boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+                              width: "48px",
+                              height: "48px"
                             }
                           }
                         };
