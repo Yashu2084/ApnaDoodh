@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import CartProvider from "@/components/CartProvider";
 import Navbar from "@/components/Navbar";
@@ -9,7 +10,7 @@ import LocationProvider from "@/components/LocationProvider";
 import LocationModal from "@/components/LocationModal";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 import FloatingLocationWidget from "@/components/FloatingLocationWidget";
-import AIDairyAssistant from "@/components/AIDairyAssistant";
+// import AIDairyAssistant from "@/components/AIDairyAssistant"; // Disabled our custom AI since you are testing Botpress!
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,6 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable}`}>
       <body className="antialiased" suppressHydrationWarning>
+        {/* Botpress Integration */}
+        <Script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js" strategy="afterInteractive" />
+        <Script src="https://files.bpcontent.cloud/2026/09/05/14/20260905142138-1RCOD4Z9.js" strategy="afterInteractive" />
         <LocationProvider>
           <CartProvider>
             <div className="flex flex-col min-h-screen bg-white text-slate-950 overflow-x-hidden w-full relative">
@@ -45,7 +49,7 @@ export default function RootLayout({
               
               {/* Floating Widgets */}
               <FloatingLocationWidget />
-              <AIDairyAssistant />
+              {/* <AIDairyAssistant /> */}
               <WhatsAppWidget />
             </div>
           </CartProvider>
