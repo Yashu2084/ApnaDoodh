@@ -115,21 +115,22 @@ export default function ChatWindow({ trigger }: { trigger?: ReactNode }) {
   };
 
   return (
-    <div className="fixed bottom-[4.5rem] right-4 sm:right-6 sm:bottom-[5.5rem] z-[60] flex flex-col items-end">
+    <div className="fixed bottom-[calc(1.5rem+3.5rem+1.25rem)] right-6 z-[60] flex flex-col items-end">
       <AnimatePresence>
         {open && (
           <motion.section 
-            initial={{ opacity: 0, y: 10, scale: 0.98 }} 
+            initial={{ opacity: 0, y: 12, scale: 0.97 }} 
             animate={{ opacity: 1, y: 0, scale: 1 }} 
-            exit={{ opacity: 0, y: 10, scale: 0.98, transition: { duration: 0.15 } }} 
-            className="absolute bottom-[calc(100%+16px)] right-0 flex flex-col overflow-hidden bg-white rounded-2xl border border-slate-200/80 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] 
-                       w-[calc(100vw-32px)] sm:w-[340px] md:w-[360px] h-[calc(100dvh-140px)] sm:h-[480px] md:h-[520px] max-h-[560px]"
+            exit={{ opacity: 0, y: 12, scale: 0.97, transition: { duration: 0.15 } }} 
+            className="absolute bottom-[calc(100%+16px)] right-0 flex flex-col overflow-hidden bg-white rounded-[1.25rem] border border-slate-200/80 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] 
+                       w-[calc(100vw-48px)] sm:w-[320px] md:w-[350px] lg:w-[360px] 
+                       h-[calc(100dvh-150px)] sm:h-[420px] md:h-[480px] lg:h-[520px] max-h-[min(600px,calc(100dvh-120px))]"
           >
             {/* Minimal Corporate Header */}
             <header className="flex items-center justify-between bg-white border-b border-slate-100 px-4 py-3 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 border border-blue-100">
-                  <Bot className="h-4 w-4 text-blue-600" />
+                <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-blue-50/50 border border-slate-100">
+                  <img src="/assets/ai-mascot.png" alt="ApnaDoodh AI" className="h-full w-full object-cover scale-110" />
                 </div>
                 <div>
                   <h2 className="text-[13px] font-bold text-slate-800">ApnaDoodh Assistant</h2>
@@ -231,15 +232,19 @@ export default function ChatWindow({ trigger }: { trigger?: ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Floating Action Button */}
+      {/* Floating Mascot Button */}
       <motion.button 
         onClick={() => { setOpen((current) => !current); addGreeting(); }} 
         whileHover={{ scale: 1.05 }} 
         whileTap={{ scale: 0.95 }} 
-        className="flex h-11 w-11 sm:h-[48px] sm:w-[48px] items-center justify-center rounded-full bg-slate-900 text-white shadow-lg border border-slate-800 hover:bg-slate-800 transition-colors z-50"
+        className="flex h-[44px] w-[44px] sm:h-[48px] sm:w-[48px] md:h-[52px] md:w-[52px] items-center justify-center rounded-full bg-white shadow-lg border border-slate-200 hover:shadow-xl transition-all z-50 overflow-hidden"
         aria-label="Open ApnaDoodh Assistant"
       >
-        {open ? <X className="h-5 w-5 sm:h-5 sm:w-5" /> : <MessageCircle className="h-5 w-5 sm:h-5 sm:w-5" />}
+        {open ? (
+          <X className="h-5 w-5 sm:h-6 sm:w-6 text-slate-500" />
+        ) : (
+          <img src="/assets/ai-mascot.png" alt="ApnaDoodh Assistant" className="h-[135%] w-[135%] object-cover object-center mt-2.5" />
+        )}
       </motion.button>
     </div>
   );
