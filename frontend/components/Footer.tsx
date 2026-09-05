@@ -201,6 +201,7 @@ export default function Footer() {
                 </div>
                 <button
                   type="submit"
+                  suppressHydrationWarning
                   className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/10 transition hover:bg-blue-500 active:scale-[0.98] cursor-pointer"
                 >
                   Join
