@@ -55,7 +55,7 @@ export default function WhatsAppWidget() {
   ];
 
   return (
-    <div ref={widgetRef} className="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+    <div ref={widgetRef} className="fixed bottom-[150px] sm:bottom-[160px] right-6 z-40 flex flex-col items-end transition-all">
       
       {/* Tooltip */}
       <AnimatePresence>
