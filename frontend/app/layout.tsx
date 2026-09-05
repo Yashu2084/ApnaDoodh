@@ -10,7 +10,6 @@ import LocationProvider from "@/components/LocationProvider";
 import LocationModal from "@/components/LocationModal";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
 import FloatingLocationWidget from "@/components/FloatingLocationWidget";
-import AIDairyAssistant from "@/components/AIDairyAssistant";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,11 +45,64 @@ export default function RootLayout({
               
               {/* Floating Widgets */}
               <FloatingLocationWidget />
-              <AIDairyAssistant />
               <WhatsAppWidget />
             </div>
           </CartProvider>
         </LocationProvider>
+        
+        {/* Botpress Integration & Interceptor */}
+        <Script src="https://cdn.botpress.cloud/webchat/v5.0/inject.js" strategy="beforeInteractive" />
+        <Script id="bp-interceptor" strategy="beforeInteractive">
+          {`
+            if (typeof window !== 'undefined') {
+              let originalInit = null;
+              
+              // Polling to intercept the init function before the auto-script fires
+              const bpInterval = setInterval(() => {
+                if (window.botpress && window.botpress.init && window.botpress.init !== interceptInit) {
+                  originalInit = window.botpress.init;
+                  
+                  function interceptInit(config) {
+                    try {
+                      // Dynamically replace the bot avatar and launcher (FAB) image with the custom ApnaDoodh mascot
+                      const mascotUrl = window.location.origin + '/assets/ai-mascot.png';
+                      
+                      if (config && config.configuration) {
+                        config.configuration.fabImage = mascotUrl;
+                        config.configuration.botAvatar = mascotUrl;
+                        
+                        // We inject custom theme properties to override default Botpress styling
+                        config.configuration.theme = {
+                          ...(config.configuration.theme || {}),
+                          style: {
+                            ...(config.configuration.theme?.style || {}),
+                            floatingActionButton: {
+                              backgroundColor: "#ffffff",
+                              border: "1px solid #e2e8f0",
+                              boxShadow: "0 12px 36px rgba(0,0,0,0.15)",
+                              width: "56px",
+                              height: "56px"
+                            }
+                          }
+                        };
+                      }
+                    } catch(e) { console.error("Failed to intercept Botpress config", e); }
+                    
+                    // Call the original init with our modified config
+                    originalInit.call(window.botpress, config);
+                  }
+                  
+                  window.botpress.init = interceptInit;
+                  clearInterval(bpInterval);
+                }
+              }, 10);
+              
+              // Failsafe clear
+              setTimeout(() => clearInterval(bpInterval), 5000);
+            }
+          `}
+        </Script>
+        <Script src="https://files.bpcontent.cloud/2026/09/05/14/20260905142138-1RCOD4Z9.js" strategy="afterInteractive" />
       </body>
     </html>
   );

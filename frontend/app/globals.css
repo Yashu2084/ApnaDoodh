@@ -71,3 +71,15 @@ img {
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite linear;
 }
+
+/* Botpress Webchat Overrides */
+#bp-web-widget, #bp-web-widget-container, .bp-widget-widget {
+  bottom: calc(1.5rem + 3.5rem + 1rem) !important; /* Above WhatsApp */
+  z-index: 60 !important;
+}
+
+@media (max-width: 640px) {
+  #bp-web-widget, #bp-web-widget-container, .bp-widget-widget {
+    bottom: calc(1.5rem + 3.5rem + 0.75rem) !important;
+  }
+}
